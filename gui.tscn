@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3 uid="uid://d274hcvhaome0"]
+
+[ext_resource type="Script" path="res://GuiController.cs" id="1_rdumm"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="."]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(0, 50)
+metadata/_edit_use_anchors_ = true
+
+[node name="Button" type="Button" parent="Panel"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 24.0
+offset_top = -25.0
+offset_right = 174.0
+offset_bottom = 25.0
+grow_vertical = 2
+text = "Open
+"
+
+[node name="GuiController" type="Node" parent="."]
+script = ExtResource("1_rdumm")
+
+[connection signal="pressed" from="Panel/Button" to="GuiController" method="_on_open_button_pressed"]
