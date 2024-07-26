@@ -39,4 +39,13 @@ text = "Open
 [node name="GuiController" type="Node" parent="."]
 script = ExtResource("1_rdumm")
 
+[node name="OpenDialog" type="FileDialog" parent="GuiController"]
+title = "Open a File"
+initial_position = 2
+size = Vector2i(450, 350)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
 [connection signal="pressed" from="Panel/Button" to="GuiController" method="_on_open_button_pressed"]
+[connection signal="file_selected" from="GuiController/OpenDialog" to="GuiController" method="_on_file_selected"]
