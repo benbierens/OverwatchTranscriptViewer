@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using OverwatchTranscript;
+using CodexPlugin.OverwatchSupport;
 
 public partial class SceneController : Node
 {
@@ -8,6 +9,7 @@ public partial class SceneController : Node
 	
 	private ITranscriptReader reader;
 	private bool running;
+	private double time;
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -21,7 +23,12 @@ public partial class SceneController : Node
 	{
 		if (!running) return;
 		
-		GD.Print("run");
+		time += delta;
+		if (time > 0.2)
+		{
+			time -= 0.2;
+			reader.Next();
+		}
 	}
 	
 	public void LoadTranscript(string filepath)
@@ -30,7 +37,12 @@ public partial class SceneController : Node
 		
 		reader = Transcript.NewReader(filepath);
 		
+		var codexHandler = GetNode<Node>("CodexEventHandler") as CodexEventHandler;
+		
+		reader.AddHandler<OverwatchCodexEvent>((utc, e) => codexHandler.HandleEvent(utc, e));
+		
 		running = true;
+		time = 0.0;
 	}
 
 	public override void _Notification(int what)
