@@ -1,11 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://djdpvuc0gcka8"]
+[gd_scene load_steps=5 format=3 uid="uid://djdpvuc0gcka8"]
 
 [ext_resource type="Script" path="res://rotates.cs" id="1_wsu5x"]
 [ext_resource type="PackedScene" uid="uid://d274hcvhaome0" path="res://gui.tscn" id="2_id74j"]
+[ext_resource type="Script" path="res://SceneController.cs" id="3_mp016"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_872vn"]
 
 [node name="MainScene" type="Node3D"]
+script = ExtResource("3_mp016")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
