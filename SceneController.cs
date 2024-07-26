@@ -1,5 +1,4 @@
 using Godot;
-using System;
 using OverwatchTranscript;
 using CodexPlugin.OverwatchSupport;
 
@@ -9,6 +8,7 @@ public partial class SceneController : Node
 	
 	private ITranscriptReader reader;
 	private bool running;
+	private bool hold;
 	private double time;
 	
 	// Called when the node enters the scene tree for the first time.
@@ -26,8 +26,16 @@ public partial class SceneController : Node
 		time += delta;
 		if (time > 0.2)
 		{
-			time -= 0.2;
-			reader.Next();
+			if (hold)
+			{
+				time = 2.0f;
+			}
+			else
+			{
+				time -= 0.2;
+				reader.Next();
+				hold = true;
+			}
 		}
 	}
 	
@@ -43,6 +51,11 @@ public partial class SceneController : Node
 		
 		running = true;
 		time = 0.0;
+	}
+
+	public void Proceed()
+	{
+		hold = false;
 	}
 
 	public override void _Notification(int what)

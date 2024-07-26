@@ -17,5 +17,16 @@ public partial class CodexEventHandler : Node
 	public void HandleEvent(DateTime utc, OverwatchCodexEvent @event)
 	{
 		GD.Print("handling codex event!");
+
+		if (@event.NodeStarted != null) Handle(@event.NodeStarted);
+	}
+
+	private void Handle(NodeStartedEvent nodeStarted)
+	{
+		var template = GD.Load<PackedScene>("res://Codex/codex_node.tscn");
+		var instance = template.Instantiate();
+		AddChild(instance);
+		var node = instance as CodexNode;
+		node.Initialize(nodeStarted);
 	}
 }

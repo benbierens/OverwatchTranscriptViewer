@@ -1,21 +1,16 @@
-[gd_scene load_steps=6 format=3 uid="uid://djdpvuc0gcka8"]
+[gd_scene load_steps=5 format=3 uid="uid://djdpvuc0gcka8"]
 
-[ext_resource type="Script" path="res://rotates.cs" id="1_wsu5x"]
 [ext_resource type="PackedScene" uid="uid://d274hcvhaome0" path="res://gui.tscn" id="2_id74j"]
+[ext_resource type="Script" path="res://CameraController.cs" id="2_mkvwe"]
 [ext_resource type="Script" path="res://SceneController.cs" id="3_mp016"]
 [ext_resource type="Script" path="res://Codex/CodexEventHandler.cs" id="4_1ylr8"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_872vn"]
 
 [node name="MainScene" type="Node3D"]
 script = ExtResource("3_mp016")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("BoxMesh_872vn")
-script = ExtResource("1_wsu5x")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+script = ExtResource("2_mkvwe")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.895121, -0.290537, 0.338151, 0, 0.758487, 0.651688, -0.445823, -0.58334, 0.678938, 2, 0, 0)

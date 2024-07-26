@@ -4,6 +4,7 @@ using System;
 public partial class GuiController : Node
 {
 	private FileDialog fd;
+	private double autostart = 2.0;
 		
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -14,6 +15,14 @@ public partial class GuiController : Node
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+		if (autostart > 0.0)
+		{
+			autostart -= delta;
+			if (autostart <= 0.0)
+			{
+				_on_open_button_pressed();
+			}
+		}
 	}
 	
 	public void _on_open_button_pressed()
