@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://d274hcvhaome0"]
+[gd_scene load_steps=3 format=3 uid="uid://d274hcvhaome0"]
 
 [ext_resource type="Script" path="res://GuiController.cs" id="1_rdumm"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8cqov"]
+bg_color = Color(0.347817, 0.347817, 0.347817, 1)
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -20,6 +23,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
 pivot_offset = Vector2(0, 50)
+theme_override_styles/panel = SubResource("StyleBoxFlat_8cqov")
 metadata/_edit_use_anchors_ = true
 
 [node name="Button" type="Button" parent="Panel"]

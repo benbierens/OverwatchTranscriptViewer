@@ -41,7 +41,7 @@ public partial class CodexEventHandler : Node
 		var to = Lookup.Get<CodexNode>(bootstrapConfig.BootstrapPeerId);
 
 		var line = SpawnConnectionLine();
-		line.Initialize(from, to, 2.5f, () =>
+		line.Initialize(from, to, thickness: 0.08f, speed: 2.5f, new Color(0.2f, 0.2f, 0.2f, 0.2f), () =>
 		{
 			SceneController.Instance.Proceed();
 		});

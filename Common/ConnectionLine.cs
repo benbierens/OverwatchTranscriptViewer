@@ -6,8 +6,10 @@ namespace OverwatchTranscriptViewer.Common
 	public partial class ConnectionLine : Node3D
 	{
 		private MeshInstance3D visual;
+		private BaseMaterial3D material;
 		private float appearFactorLeft;
 		private double delay;
+		private float thickness;
 		private float speed;
 		private Action whenDone;
 		private Node3D from;
@@ -16,6 +18,8 @@ namespace OverwatchTranscriptViewer.Common
 		public override void _Ready()
 		{
 			visual = GetNode<MeshInstance3D>("Visual");
+
+			material = visual.GetSurfaceOverrideMaterial(0) as BaseMaterial3D;
 		}
 
 		public override void _Process(double delta)
@@ -55,17 +59,19 @@ namespace OverwatchTranscriptViewer.Common
 
 			var distance = (from.Transform.Origin - to.Transform.Origin).Length();
 
-			visual.Scale = new Vector3(0.1f, distance * 0.5f * lengthScale, 0.1f);
+			visual.Scale = new Vector3(thickness, distance * 0.5f * lengthScale, thickness);
 		}
 
-		public void Initialize(Node3D from, Node3D to, float speed, Action whenDone)
+		public void Initialize(Node3D from, Node3D to, float thickness, float speed, Color color, Action whenDone)
 		{
 			this.from = from;
 			this.to = to;
 			this.speed = speed;
 			this.whenDone = whenDone;
+			this.thickness = thickness;
 
 			appearFactorLeft = 1.0f;
+			material.AlbedoColor = color;
 		}
 
 		private Vector3 GetCenterPoint()

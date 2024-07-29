@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://fu4d38wy3u4t"]
+[gd_scene load_steps=4 format=3 uid="uid://fu4d38wy3u4t"]
 
 [ext_resource type="Script" path="res://Common/ConnectionLine.cs" id="1_lthfg"]
 
@@ -10,6 +10,9 @@ rings = 2
 cap_top = false
 cap_bottom = false
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pk5on"]
+transparency = 1
+
 [node name="ConnectionLine" type="Node3D"]
 script = ExtResource("1_lthfg")
 
@@ -17,3 +20,4 @@ script = ExtResource("1_lthfg")
 transform = Transform3D(0.2, 0, 0, 0, -8.74228e-09, -0.2, 0, 0.2, -8.74228e-09, 0, 0, 0)
 mesh = SubResource("CylinderMesh_05cc3")
 skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("StandardMaterial3D_pk5on")
