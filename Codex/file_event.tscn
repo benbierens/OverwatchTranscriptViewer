@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://dskxoywkjqac"]
+
+[ext_resource type="Script" path="res://Codex/FileEvent.cs" id="1_gr51y"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_tbqhu"]
+radius = 0.25
+height = 0.5
+radial_segments = 32
+rings = 16
+
+[node name="FileEvent" type="Node3D"]
+script = ExtResource("1_gr51y")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_tbqhu")
+
+[node name="Label3D" type="Label3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.354374, 0.5)
+text = "12345678901234567891234567890"
+font_size = 16
+outline_size = 6

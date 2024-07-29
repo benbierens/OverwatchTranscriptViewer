@@ -4,6 +4,7 @@ using CodexPlugin.OverwatchSupport;
 using OverwatchTranscriptViewer;
 using OverwatchTranscript;
 using OverwatchTranscriptViewer.Common;
+using OverwatchTranscriptViewer.Codex;
 
 public partial class CodexEventHandler : Node
 {
@@ -33,6 +34,27 @@ public partial class CodexEventHandler : Node
 		if (@event.NodeStarting != null) Handle(@event, @event.NodeStarting); 
 		if (@event.NodeStarted != null) Handle(@event, @event.NodeStarted);
 		if (@event.BootstrapConfig != null) Handle(@event, @event.BootstrapConfig);
+
+		if (@event.FileUploaded != null) Handle(@event, @event.FileUploaded);
+		if (@event.FileDownloaded != null) Handle(@event, @event.FileDownloaded);
+	}
+
+	private void Handle(OverwatchCodexEvent @event, FileDownloadedEvent fileDownloaded)
+	{
+		SpawnFileEvent(
+			target: Lookup.Get<CodexNode>(@event.PeerId),
+			cid: fileDownloaded.Cid,
+			backwards: true
+		);
+	}
+
+	private void Handle(OverwatchCodexEvent @event, FileUploadedEvent fileUploaded)
+	{
+		SpawnFileEvent(
+			target: Lookup.Get<CodexNode>(@event.PeerId),
+			cid: fileUploaded.Cid,
+			backwards: false
+		);
 	}
 
 	private void Handle(OverwatchCodexEvent @event, BootstrapConfigEvent bootstrapConfig)
@@ -78,5 +100,16 @@ public partial class CodexEventHandler : Node
 		var instance = template.Instantiate();
 		AddChild(instance);
 		return instance as ConnectionLine;
+	}
+
+	private void SpawnFileEvent(CodexNode target, string cid, bool backwards)
+	{
+		var template = GD.Load<PackedScene>("res://Codex/file_event.tscn");
+		var instance = template.Instantiate();
+		AddChild(instance);
+		(instance as FileEvent).Initialize(target, cid, 0.5f, backwards, whenDone: () =>
+		{
+			SceneController.Instance.Proceed();
+		});
 	}
 }
