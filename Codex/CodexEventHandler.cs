@@ -127,7 +127,7 @@ public partial class CodexEventHandler : Node
 		var template = GD.Load<PackedScene>("res://Codex/transfer_event.tscn");
 		var instance = template.Instantiate();
 		AddChild(instance);
-		(instance as TransferEvent).Initialize(source, target, label, speed: 1.0f, whenDone: () =>
+		(instance as TransferEvent).Initialize(source, target, label, speed: 2.0f, whenDone: () =>
 		{
 			SceneController.Instance.Proceed();
 		});

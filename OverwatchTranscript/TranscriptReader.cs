@@ -1,17 +1,18 @@
-using System;
+using Newtonsoft.Json;
 using System.IO;
+using System;
+using System.IO.Compression;
 using System.Linq;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using System.IO.Compression;
 
 namespace OverwatchTranscript
 {
 	public interface ITranscriptReader
 	{
+		OverwatchCommonHeader Header { get; }
 		T GetHeader<T>(string key);
 		void AddHandler<T>(Action<DateTime, T> handler);
-		void Next();
+		DateTime? Next();
 		void Close();
 	}
 
@@ -38,6 +39,15 @@ namespace OverwatchTranscript
 			LoadModel(inputFilename);
 		}
 
+		public OverwatchCommonHeader Header
+		{
+			get
+			{
+				CheckClosed();
+				return model.Header.Common;
+			}
+		}
+
 		public T GetHeader<T>(string key)
 		{
 			CheckClosed();
@@ -57,15 +67,16 @@ namespace OverwatchTranscript
 			});
 		}
 
-		public void Next()
+		public DateTime? Next()
 		{
 			CheckClosed();
-			if (momentIndex >= model.Moments.Length) return;
+			if (momentIndex >= model.Moments.Length) return null;
 
 			var moment = model.Moments[momentIndex];
 			momentIndex++;
 
 			PlayMoment(moment);
+			return moment.Utc;
 		}
 
 		public void Close()

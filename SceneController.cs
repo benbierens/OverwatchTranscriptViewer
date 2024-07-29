@@ -6,12 +6,15 @@ using OverwatchTranscriptViewer;
 public partial class SceneController : Node
 {
 	public static SceneController Instance;
-	
+
+	public GuiController Gui;
+
+	private OverwatchCommonHeader header;
 	private ITranscriptReader reader;
 	private readonly Placer placer = new Placer();
 	private bool running;
 	private bool hold;
-	private double time;
+	//private double time;
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -25,18 +28,23 @@ public partial class SceneController : Node
 	{
 		if (!running) return;
 		
-		time += delta;
-		if (time > 0.2)
+		//time += delta;
+		//if (time > 0.2)
 		{
 			if (hold)
 			{
-				time = 2.0f;
+				//time = 2.0f;
 			}
 			else
 			{
-				time -= 0.2;
+				//time -= 0.2;
 				hold = true;
-				reader.Next();
+				var current = reader.Next();
+
+				if (current != null)
+				{
+					GuiController.Instance.UpdateProgressBar(header.EarliestUct, header.LatestUtc, current.Value);
+				}
 			}
 		}
 	}
@@ -44,14 +52,14 @@ public partial class SceneController : Node
 	public void LoadTranscript(string filepath)
 	{		
 		reader = Transcript.NewReader(filepath);
-		
+		header = reader.Header;
+
 		var codexHandler = GetNode<Node>("CodexEventHandler") as CodexEventHandler;
 		codexHandler.Initialize(reader, placer);
-		
 		reader.AddHandler<OverwatchCodexEvent>((utc, e) => codexHandler.HandleEvent(utc, e));
 		
 		running = true;
-		time = 0.0;
+		//time = 0.0;
 	}
 
 	public void Proceed()

@@ -13,20 +13,31 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="."]
+[node name="GuiController" type="Node" parent="."]
+script = ExtResource("1_rdumm")
+
+[node name="OpenDialog" type="FileDialog" parent="GuiController"]
+title = "Open a File"
+initial_position = 2
+size = Vector2i(450, 350)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
+[node name="Panel" type="Panel" parent="GuiController"]
 custom_minimum_size = Vector2(0, 100)
-layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -100.0
 grow_horizontal = 2
 grow_vertical = 0
 pivot_offset = Vector2(0, 50)
 theme_override_styles/panel = SubResource("StyleBoxFlat_8cqov")
 metadata/_edit_use_anchors_ = true
 
-[node name="Button" type="Button" parent="Panel"]
+[node name="Button" type="Button" parent="GuiController/Panel"]
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 1
 anchors_preset = 4
@@ -40,16 +51,21 @@ grow_vertical = 2
 text = "Open
 "
 
-[node name="GuiController" type="Node" parent="."]
-script = ExtResource("1_rdumm")
+[node name="ProgressBar" type="ProgressBar" parent="GuiController/Panel"]
+custom_minimum_size = Vector2(800, 25)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.0
+offset_top = -13.5
+offset_right = 2.0
+offset_bottom = 13.5
+grow_horizontal = 2
+grow_vertical = 2
+value = 20.0
 
-[node name="OpenDialog" type="FileDialog" parent="GuiController"]
-title = "Open a File"
-initial_position = 2
-size = Vector2i(450, 350)
-ok_button_text = "Open"
-file_mode = 0
-access = 2
-
-[connection signal="pressed" from="Panel/Button" to="GuiController" method="_on_open_button_pressed"]
 [connection signal="file_selected" from="GuiController/OpenDialog" to="GuiController" method="_on_file_selected"]
+[connection signal="pressed" from="GuiController/Panel/Button" to="GuiController" method="_on_open_button_pressed"]

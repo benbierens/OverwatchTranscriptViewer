@@ -1,14 +1,21 @@
 using Godot;
+using System;
 
 public partial class GuiController : Node
 {
+	public static GuiController Instance;
+
 	private FileDialog fd;
+	private ProgressBar bar;
 	private double autostart = 0.5;
 		
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		Instance = this;
+
 		fd = GetNode<FileDialog>("OpenDialog");
+		bar = GetNode<ProgressBar>("Panel/ProgressBar");
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -22,6 +29,15 @@ public partial class GuiController : Node
 				_on_open_button_pressed();
 			}
 		}
+	}
+
+	public void UpdateProgressBar(DateTime earliest, DateTime latest, DateTime current)
+	{
+		var totalSpan = latest - earliest;
+		var process = current - earliest;
+		var factor = process / totalSpan;
+
+		bar.Value = 100.0 * factor;
 	}
 	
 	public void _on_open_button_pressed()
