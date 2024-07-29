@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://gv0vg5xc8h0q"]
+
+[ext_resource type="Script" path="res://Codex/TransferEvent.cs" id="1_4g1dd"]
+[ext_resource type="Script" path="res://rotates.cs" id="2_63ao2"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_gn8mm"]
+
+[node name="TransferEvent" type="Node3D"]
+script = ExtResource("1_4g1dd")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="Label3D" type="Label3D" parent="Visual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.331614, 0.934091)
+text = "asdfghjklasdfghjklasdfghjkl
+"
+font_size = 16
+outline_size = 6
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0)
+mesh = SubResource("BoxMesh_gn8mm")
+script = ExtResource("2_63ao2")

@@ -3,7 +3,7 @@ using System;
 
 namespace OverwatchTranscriptViewer.Codex
 {
-	public partial class FileEvent : Node3D
+	public partial class TransferEvent : Node3D
 	{
 		private Node3D visual;
 		//private BaseMaterial3D material;
@@ -11,6 +11,7 @@ namespace OverwatchTranscriptViewer.Codex
 		private bool backwards;
 		private float speed;
 		private Action whenDone;
+		private Node3D source;
 		private Node3D target;
 
 		public override void _Ready()
@@ -25,29 +26,38 @@ namespace OverwatchTranscriptViewer.Codex
 			factor += Convert.ToSingle(delta) * speed;
 			if (factor > 1.0f)
 			{
-				whenDone();
+				//whenDone();
 				QueueFree();
 				return;
 			}
 
 			Transform = new Transform3D
 			{
-				Origin = backwards ?
-					target.Transform.Origin.Lerp(Vector3.Zero, factor) :
-					Vector3.Zero.Lerp(target.Transform.Origin, factor),
+				Origin = source.Transform.Origin.Lerp(target.Transform.Origin, factor),
 				Basis = new Basis(Quaternion.Identity)
 			};
 		}
 
-		public void Initialize(Node3D target, string cid, float speed, bool backwards, Action whenDone)
+		public void Initialize(Node3D source, Node3D target, string label, float speed, Action whenDone)
 		{
+			this.source = source;
 			this.target = target;
 			this.speed = speed;
 			this.whenDone = whenDone;
-			this.backwards = backwards;
 			factor = 0.0f;
 
-			visual.GetNode<Label3D>("Label3D").Text = cid;
+			visual.GetNode<Label3D>("Label3D").Text = ""; // label
+			var rotates = visual.GetNode<rotates>("MeshInstance3D");
+			rotates.Speed = 5.0f;
+			rotates.TargetSpeed = rotates.Speed;
+
+			Transform = new Transform3D
+			{
+				Origin = source.Transform.Origin,
+				Basis = new Basis(Quaternion.Identity)
+			};
+
+			whenDone();
 		}
 	}
 }

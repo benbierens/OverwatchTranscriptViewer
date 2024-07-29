@@ -34,9 +34,18 @@ public partial class CodexEventHandler : Node
 		if (@event.NodeStarting != null) Handle(@event, @event.NodeStarting); 
 		if (@event.NodeStarted != null) Handle(@event, @event.NodeStarted);
 		if (@event.BootstrapConfig != null) Handle(@event, @event.BootstrapConfig);
-
 		if (@event.FileUploaded != null) Handle(@event, @event.FileUploaded);
 		if (@event.FileDownloaded != null) Handle(@event, @event.FileDownloaded);
+		if (@event.BlockReceived != null) Handle(@event, @event.BlockReceived);
+	}
+
+	private void Handle(OverwatchCodexEvent @event, BlockReceivedEvent blockReceived)
+	{
+		SpawnTransferEvent(
+			source: Lookup.Get<CodexNode>(blockReceived.SenderPeerId),
+			target: Lookup.Get<CodexNode>(@event.PeerId),
+			label: blockReceived.BlockAddress
+		);
 	}
 
 	private void Handle(OverwatchCodexEvent @event, FileDownloadedEvent fileDownloaded)
@@ -63,7 +72,7 @@ public partial class CodexEventHandler : Node
 		var to = Lookup.Get<CodexNode>(bootstrapConfig.BootstrapPeerId);
 
 		var line = SpawnConnectionLine();
-		line.Initialize(from, to, thickness: 0.08f, speed: 2.5f, new Color(0.2f, 0.2f, 0.2f, 0.2f), () =>
+		line.Initialize(from, to, thickness: 0.08f, speed: 2.5f, new Color(0.2f, 0.2f, 0.2f, 0.4f), () =>
 		{
 			SceneController.Instance.Proceed();
 		});
@@ -107,7 +116,18 @@ public partial class CodexEventHandler : Node
 		var template = GD.Load<PackedScene>("res://Codex/file_event.tscn");
 		var instance = template.Instantiate();
 		AddChild(instance);
-		(instance as FileEvent).Initialize(target, cid, 0.5f, backwards, whenDone: () =>
+		(instance as FileEvent).Initialize(target, cid, speed: 0.9f, backwards, whenDone: () =>
+		{
+			SceneController.Instance.Proceed();
+		});
+	}
+
+	private void SpawnTransferEvent(CodexNode source, CodexNode target, string label)
+	{
+		var template = GD.Load<PackedScene>("res://Codex/transfer_event.tscn");
+		var instance = template.Instantiate();
+		AddChild(instance);
+		(instance as TransferEvent).Initialize(source, target, label, speed: 1.0f, whenDone: () =>
 		{
 			SceneController.Instance.Proceed();
 		});
