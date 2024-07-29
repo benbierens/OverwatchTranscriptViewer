@@ -15,7 +15,7 @@ skeleton = NodePath("../..")
 script = ExtResource("1_pf0os")
 
 [node name="Label3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.326029, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.326, 0.4)
 text = "NodeName"
 font_size = 16
 outline_size = 6

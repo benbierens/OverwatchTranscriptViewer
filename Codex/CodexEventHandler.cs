@@ -41,9 +41,10 @@ public partial class CodexEventHandler : Node
 		var to = Lookup.Get<CodexNode>(bootstrapConfig.BootstrapPeerId);
 
 		var line = SpawnConnectionLine();
-		line.Initialize(from, to);
-
-		SceneController.Instance.Proceed();
+		line.Initialize(from, to, 2.5f, () =>
+		{
+			SceneController.Instance.Proceed();
+		});
 	}
 
 	private void Handle(OverwatchCodexEvent @event, NodeStartingEvent nodeStarting)

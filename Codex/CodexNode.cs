@@ -5,7 +5,7 @@ using System;
 
 public partial class CodexNode : Node3D
 {
-	private const float scaleSpeed = 1.0f;
+	private const float scaleSpeed = 0.5f;
 	private const float startingScale = 0.15f;
 	private const float startingSpeed = 10.0f;
 	private const float runningScale = 0.3f;
