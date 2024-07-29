@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://fu4d38wy3u4t"]
+
+[ext_resource type="Script" path="res://Common/ConnectionLine.cs" id="1_lthfg"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_05cc3"]
+top_radius = 0.2
+bottom_radius = 0.2
+radial_segments = 32
+rings = 2
+cap_top = false
+cap_bottom = false
+
+[node name="ConnectionLine" type="Node3D"]
+script = ExtResource("1_lthfg")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.2, 0, 0, 0, -8.74228e-09, -0.2, 0, 0.2, -8.74228e-09, 0, 0, 0)
+mesh = SubResource("CylinderMesh_05cc3")
+skeleton = NodePath("../..")

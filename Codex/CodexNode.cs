@@ -15,8 +15,14 @@ public partial class CodexNode : Node3D
 	private rotates rotate;
 	private Label3D text;
 
-	public void Starting(string name)
+	public string CodexName { get; private set; }
+	public string PeerId { get; private set; }
+
+	public void Starting(string name, string peerId)
 	{
+		CodexName = name;
+		PeerId = peerId;
+
 		targetScale = startingScale;
 		rotate.Speed = startingSpeed;
 		rotate.TargetSpeed = startingSpeed;
@@ -24,15 +30,16 @@ public partial class CodexNode : Node3D
 		text.Text = name;
 
 		Lookup.Add(name, this);
+		Lookup.Add(peerId, this);
+		Lookup.Add(CodexUtils.ToShortId(peerId), this);
 	}
 
-	public void Started(string peerId)
+	public void Started()
 	{
 		targetScale = runningScale;
 		rotate.TargetSpeed = runningSpeed;
 
-		Lookup.Add(peerId, this);
-		Lookup.Add(CodexUtils.ToShortId(peerId), this);
+		SceneController.Instance.Proceed();
 	}
 
 	public override void _Ready()
@@ -44,7 +51,7 @@ public partial class CodexNode : Node3D
 		targetScale = currentScale;
 		rotate.Speed = startingSpeed;
 		rotate.TargetSpeed = rotate.Speed;
-		rotate.SpeedChangeRate = 0.5f;
+		rotate.SpeedChangeRate = 2.0f;
 	}
 
 	public override void _Process(double delta)
@@ -56,8 +63,6 @@ public partial class CodexNode : Node3D
 			if (currentScale >= targetScale)
 			{
 				SceneController.Instance.Proceed();
-
-				GD.Print("proceed");
 			}
 		}
 	}

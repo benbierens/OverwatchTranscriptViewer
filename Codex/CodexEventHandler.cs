@@ -3,6 +3,7 @@ using System;
 using CodexPlugin.OverwatchSupport;
 using OverwatchTranscriptViewer;
 using OverwatchTranscript;
+using OverwatchTranscriptViewer.Common;
 
 public partial class CodexEventHandler : Node
 {
@@ -31,19 +32,29 @@ public partial class CodexEventHandler : Node
 	{
 		if (@event.NodeStarting != null) Handle(@event, @event.NodeStarting); 
 		if (@event.NodeStarted != null) Handle(@event, @event.NodeStarted);
+		if (@event.BootstrapConfig != null) Handle(@event, @event.BootstrapConfig);
+	}
+
+	private void Handle(OverwatchCodexEvent @event, BootstrapConfigEvent bootstrapConfig)
+	{
+		var from = Lookup.Get<CodexNode>(@event.PeerId);
+		var to = Lookup.Get<CodexNode>(bootstrapConfig.BootstrapPeerId);
+
+		var line = SpawnConnectionLine();
+		line.Initialize(from, to);
+
+		SceneController.Instance.Proceed();
 	}
 
 	private void Handle(OverwatchCodexEvent @event, NodeStartingEvent nodeStarting)
 	{
 		var node = SpawnCodexNode();
-		node.Starting(@event.Name);
-		GD.Print("starting " + @event.Name);
+		node.Starting(@event.Name, @event.PeerId);
 	}
 
 	private void Handle(OverwatchCodexEvent @event, NodeStartedEvent nodeStarted)
 	{
-		GetCodex(@event.Name).Started(@event.PeerId);
-		GD.Print("started " + @event.Name);
+		GetCodex(@event.Name).Started();
 	}
 
 	private CodexNode GetCodex(string name)
@@ -58,5 +69,13 @@ public partial class CodexEventHandler : Node
 		AddChild(instance);
 		(instance as Node3D).Translate(placer.GetPlace());
 		return instance as CodexNode;
+	}
+
+	private ConnectionLine SpawnConnectionLine()
+	{
+		var template = GD.Load<PackedScene>("res://Common/connection_line.tscn");
+		var instance = template.Instantiate();
+		AddChild(instance);
+		return instance as ConnectionLine;
 	}
 }

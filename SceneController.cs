@@ -35,16 +35,14 @@ public partial class SceneController : Node
 			else
 			{
 				time -= 0.2;
-				reader.Next();
 				hold = true;
+				reader.Next();
 			}
 		}
 	}
 	
 	public void LoadTranscript(string filepath)
-	{
-		GD.Print("yeah: " + filepath);
-		
+	{		
 		reader = Transcript.NewReader(filepath);
 		
 		var codexHandler = GetNode<Node>("CodexEventHandler") as CodexEventHandler;
