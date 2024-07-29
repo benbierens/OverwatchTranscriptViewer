@@ -1,65 +1,64 @@
-using CodexPlugin.OverwatchSupport;
 using Godot;
+using OverwatchTranscriptViewer;
+using OverwatchTranscriptViewer.Codex;
 using System;
 
 public partial class CodexNode : Node3D
 {
-	private static readonly Placer placer = new Placer();
 	private const float scaleSpeed = 1.0f;
-	private const float targetScale = 0.3f;
-	private float scale;
-	private rotates visual;
+	private const float startingScale = 0.15f;
+	private const float startingSpeed = 10.0f;
+	private const float runningScale = 0.3f;
+	private const float runningSpeed = 0.1f;
+	private float currentScale;
+	private float targetScale;
+	private rotates rotate;
 	private Label3D text;
-	private NodeStartedEvent startEvent;
 
-	public void Initialize(NodeStartedEvent startEvent)
+	public void Starting(string name)
 	{
-		this.startEvent = startEvent;
+		targetScale = startingScale;
+		rotate.Speed = startingSpeed;
+		rotate.TargetSpeed = startingSpeed;
+
+		text.Text = name;
+
+		Lookup.Add(name, this);
+	}
+
+	public void Started(string peerId)
+	{
+		targetScale = runningScale;
+		rotate.TargetSpeed = runningSpeed;
+
+		Lookup.Add(peerId, this);
+		Lookup.Add(CodexUtils.ToShortId(peerId), this);
 	}
 
 	public override void _Ready()
 	{
-		Translate(placer.GetPlace());
-		visual = GetNode<rotates>("MeshInstance3D");
+		rotate = GetNode<rotates>("MeshInstance3D");
 		text = GetNode<Label3D>("Label3D");
 
-		scale = 0.01f;
-		visual.Speed = 10.0f;
+		currentScale = 0.01f;
+		targetScale = currentScale;
+		rotate.Speed = startingSpeed;
+		rotate.TargetSpeed = rotate.Speed;
+		rotate.SpeedChangeRate = 0.5f;
 	}
 
 	public override void _Process(double delta)
 	{
-		visual.Scale = new Vector3(scale, scale, scale);
-		if (scale < targetScale)
+		rotate.Scale = new Vector3(currentScale, currentScale, currentScale);
+		if (currentScale < targetScale)
 		{
-			scale += scaleSpeed * Convert.ToSingle(delta);
-			if (scale >= targetScale)
+			currentScale += scaleSpeed * Convert.ToSingle(delta);
+			if (currentScale >= targetScale)
 			{
-				visual.Speed = 0.1f;
 				SceneController.Instance.Proceed();
-				text.Text = startEvent.Name;
+
+				GD.Print("proceed");
 			}
 		}
-	}
-}
-
-public class Placer
-{
-	private const float Radius = 2.0f;
-	private const int number = 10;
-	private int count = 0;
-
-	public Vector3 GetPlace()
-	{
-		count++;
-		float f = count;
-		double n = number;
-		float t = f * Convert.ToSingle(Math.PI * 2.0 / n);
-
-		return new Vector3(
-			Mathf.Sin(t) * Radius,
-			Mathf.Cos(t) * Radius,
-			0.0f
-		);
 	}
 }

@@ -11,10 +11,13 @@ namespace CodexPlugin.OverwatchSupport
 	[Serializable]
 	public class OverwatchCodexEvent
 	{
+		public string Name { get; set; } = string.Empty;
 		public string PeerId { get; set; } = string.Empty;
 		public ScenarioFinishedEvent ScenarioFinished { get; set; }
+		public NodeStartingEvent NodeStarting { get; set; }
 		public NodeStartedEvent NodeStarted { get; set; }
 		public NodeStoppedEvent NodeStopped { get; set; }
+		public BootstrapConfigEvent BootstrapConfig { get; set; }
 		public FileUploadedEvent FileUploaded { get; set; }
 		public FileDownloadedEvent FileDownloaded { get; set; }
 		public BlockReceivedEvent BlockReceived { get; set; }
@@ -30,17 +33,26 @@ namespace CodexPlugin.OverwatchSupport
 	}
 
 	[Serializable]
+	public class NodeStartingEvent
+	{
+		public string Image { get; set; } = string.Empty;
+	}
+
+	[Serializable]
 	public class NodeStartedEvent
 	{
-		public string Name { get; set; } = string.Empty;
-		public string Image { get; set; } = string.Empty;
-		public string Args { get; set; } = string.Empty;
 	}
 
 	[Serializable]
 	public class NodeStoppedEvent
 	{
 		public string Name { get; set; } = string.Empty;
+	}
+
+	[Serializable]
+	public class BootstrapConfigEvent
+	{
+		public string BootstrapPeerId { get; set; } = string.Empty;
 	}
 
 	[Serializable]

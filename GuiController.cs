@@ -1,5 +1,4 @@
 using Godot;
-using System;
 
 public partial class GuiController : Node
 {
@@ -29,7 +28,7 @@ public partial class GuiController : Node
 	{
 		//fd.Visible = true;
 		
-		var filepath = @"d:\Projects\cs-codex-dist-tests\Tests\CodexTests\bin\Debug\net7.0\CodexTestLogs\2024-07\26\08-56-52Z_FullyConnectedDownloadTests\FullyConnectedDownloadTest[5,10]_000006.owts";
+		var filepath = @"d:\Projects\cs-codex-dist-tests\Tests\CodexLongTests\bin\Debug\net7.0\CodexTestLogs\2024-07\29\09-03-24Z_MultiPeerDownloadTests\MultiPeerDownload[10,100]_000014.owts";
 		
 		SceneController.Instance.LoadTranscript(filepath);
 	}

@@ -1,12 +1,14 @@
 using Godot;
 using OverwatchTranscript;
 using CodexPlugin.OverwatchSupport;
+using OverwatchTranscriptViewer;
 
 public partial class SceneController : Node
 {
 	public static SceneController Instance;
 	
 	private ITranscriptReader reader;
+	private readonly Placer placer = new Placer();
 	private bool running;
 	private bool hold;
 	private double time;
@@ -46,6 +48,7 @@ public partial class SceneController : Node
 		reader = Transcript.NewReader(filepath);
 		
 		var codexHandler = GetNode<Node>("CodexEventHandler") as CodexEventHandler;
+		codexHandler.Initialize(reader, placer);
 		
 		reader.AddHandler<OverwatchCodexEvent>((utc, e) => codexHandler.HandleEvent(utc, e));
 		

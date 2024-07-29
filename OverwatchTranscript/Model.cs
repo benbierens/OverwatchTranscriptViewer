@@ -12,7 +12,16 @@ namespace OverwatchTranscript
 	[Serializable]
 	public class OverwatchHeader
 	{
+		public OverwatchCommonHeader Common { get; set; } = new();
 		public OverwatchHeaderEntry[] Entries { get; set; } = Array.Empty<OverwatchHeaderEntry>();
+	}
+
+	[Serializable]
+	public class OverwatchCommonHeader
+	{
+		public long NumberOfEvents { get; set; }
+		public DateTime EarliestUct { get; set; }
+		public DateTime LatestUtc { get; set; }
 	}
 
 	[Serializable]
