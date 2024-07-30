@@ -1,82 +1,110 @@
 using Godot;
 using OverwatchTranscript;
-using CodexPlugin.OverwatchSupport;
 using OverwatchTranscriptViewer;
+using System;
+using System.Collections.Generic;
 
-public partial class SceneController : Node
+public class SceneController
 {
-	public static SceneController Instance;
-
-	public GuiController Gui;
-
-	private OverwatchCommonHeader header;
+	private static SceneController instance;
 	private ITranscriptReader reader;
 	private readonly Placer placer = new Placer();
-	private bool running;
-	private bool hold;
-	//private double time;
+	private readonly List<IScriptEventHandler> handlerRegistrations = new List<IScriptEventHandler>();
 	
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
+	public static SceneController Instance
 	{
-		running = false;
-		Instance = this;
+		get
+		{
+			if (instance == null) instance = new SceneController();
+			return instance;
+		}
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-		if (!running) return;
-		
-		//time += delta;
-		//if (time > 0.2)
-		{
-			if (hold)
-			{
-				//time = 2.0f;
-			}
-			else
-			{
-				//time -= 0.2;
-				hold = true;
-				var current = reader.Next();
+	public GuiController Gui;
+	public Player Player;
+	public event Action<AppState> AppStateChanged;
 
-				if (current != null)
-				{
-					GuiController.Instance.UpdateProgressBar(header.EarliestUct, header.LatestUtc, current.Value);
-				}
-			}
-		}
+	public void RegisterScriptEventHandler(IScriptEventHandler handler)
+	{
+		handlerRegistrations.Add(handler);
 	}
 	
 	public void LoadTranscript(string filepath)
-	{		
-		reader = Transcript.NewReader(filepath);
-		header = reader.Header;
+	{
+		AssertState(AppState.Empty);
 
-		var codexHandler = GetNode<Node>("CodexEventHandler") as CodexEventHandler;
-		codexHandler.Initialize(reader, placer);
-		reader.AddHandler<OverwatchCodexEvent>((utc, e) => codexHandler.HandleEvent(utc, e));
-		
-		running = true;
-		//time = 0.0;
+		reader = Transcript.NewReader(filepath);
+
+		foreach (var handler in handlerRegistrations)
+		{
+			handler.Initialize(reader, placer);
+		}
+
+		Player.Initialize(reader);
+
+		SetState(AppState.Stopped);
+	}
+
+	public void PlayPause()
+	{
+		if (state == AppState.Stopped)
+		{
+			Player.Play();
+			SetState(AppState.Playing);
+		}
+		else if (state == AppState.Playing)
+		{
+			Player.Stop();
+			SetState(AppState.Stopped);
+		}
+		else
+		{
+			throw new Exception("Unexpected state: " + state);
+		}
 	}
 
 	public void Proceed()
 	{
-		hold = false;
+		Player.Proceed();
 	}
 
-	public override void _Notification(int what)
+	public void Quit()
 	{
-		if (what == NotificationWMCloseRequest)
+		if (reader != null)
 		{
-			running = false;
-			if (reader != null)
-			{
-				reader.Close();
-				GD.Print("Closed.");
-			}
+			reader.Close();
 		}
 	}
+
+	private AppState state;
+	private void SetState(AppState state)
+	{
+		if (this.state == state) return;
+		this.state = state;
+
+		var handlers = AppStateChanged;
+		if (handlers != null)
+		{
+			handlers(state);
+		}
+		GD.Print("State = " + state);
+	}
+
+	private void AssertState(AppState expected)
+	{
+		if (state != expected) throw new Exception("Unexpected state. Was: " + state + " expected: " + expected);
+	}
+}
+
+public enum AppState
+{
+	Empty,
+	Stopped,
+	Playing,
+	Jumping
+}
+
+public interface IScriptEventHandler
+{
+	void Initialize(ITranscriptReader reader, Placer placer);
 }

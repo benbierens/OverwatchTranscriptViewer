@@ -6,22 +6,24 @@ using OverwatchTranscript;
 using OverwatchTranscriptViewer.Common;
 using OverwatchTranscriptViewer.Codex;
 
-public partial class CodexEventHandler : Node
+public partial class CodexEventHandler : Node, IScriptEventHandler
 {
 	private Placer placer;
+
+	// Called when the node enters the scene tree for the first time.
+	public override void _Ready()
+	{
+		SceneController.Instance.RegisterScriptEventHandler(this);
+	}
 
 	public void Initialize(ITranscriptReader reader, Placer placer)
 	{
 		this.placer = placer;
 
 		var header = reader.GetHeader<OverwatchCodexHeader>("cdx_h");
-
 		placer.SetMaxPlaces(header.TotalNumberOfNodes);
-	}
 
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
+		reader.AddHandler<OverwatchCodexEvent>(HandleEvent);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

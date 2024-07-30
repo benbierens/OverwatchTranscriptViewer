@@ -9,8 +9,10 @@ public partial class GuiController : Node
 	private FileDialog fd;
 	private ProgressBar bar;
 	private EventsPanelController eventsPanel;
-	private double autostart = 0.5;
-		
+	private BaseButton openButton;
+	private OptionButton speedButton;
+	private BaseButton playPauseButton;
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -19,19 +21,12 @@ public partial class GuiController : Node
 		eventsPanel = GetNode<EventsPanelController>("EventsPanelController");
 		fd = GetNode<FileDialog>("OpenDialog");
 		bar = GetNode<ProgressBar>("Panel/ProgressBar");
-	}
+		openButton = GetNode<BaseButton>("Panel/Button");
+		speedButton = GetNode<OptionButton>("Panel/OptionButton");
+		playPauseButton = GetNode<BaseButton>("Panel/Button3");
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-		if (autostart > 0.0)
-		{
-			autostart -= delta;
-			if (autostart <= 0.0)
-			{
-				_on_open_button_pressed();
-			}
-		}
+		ApplyState(AppState.Empty);
+		SceneController.Instance.AppStateChanged += ApplyState;
 	}
 
 	public void UpdateProgressBar(DateTime earliest, DateTime latest, DateTime current)
@@ -45,11 +40,7 @@ public partial class GuiController : Node
 	
 	public void _on_open_button_pressed()
 	{
-		//fd.Visible = true;
-		
-		var filepath = @"d:\Projects\cs-codex-dist-tests\Tests\CodexLongTests\bin\Debug\net7.0\CodexTestLogs\2024-07\29\12-10-59Z_MultiPeerDownloadTests\MultiPeerDownload[10,100]_000014.owts";
-		
-		SceneController.Instance.LoadTranscript(filepath);
+		fd.Visible = true;
 	}
 
 	public void _on_reset_camera_pressed()
@@ -61,10 +52,24 @@ public partial class GuiController : Node
 	{
 		eventsPanel.Toggle();
 	}
+
+	public void _on_playpause_pressed()
+	{
+		SceneController.Instance.PlayPause();
+	}
 	
 	public void _on_file_selected(string path)
 	{
-		GD.Print("file: " + path);
+		var filepath = @"d:\Projects\cs-codex-dist-tests\Tests\CodexLongTests\bin\Debug\net7.0\CodexTestLogs\2024-07\29\12-10-59Z_MultiPeerDownloadTests\MultiPeerDownload[10,100]_000014.owts";
+
+		SceneController.Instance.LoadTranscript(filepath);
+	}
+
+	private void ApplyState(AppState state)
+	{
+		openButton.Disabled = state != AppState.Empty;
+		speedButton.Disabled = state != AppState.Stopped;
+		playPauseButton.Disabled = state != AppState.Stopped && state != AppState.Playing;
+		GD.Print("gui updated to " + state);
 	}
 }
-
