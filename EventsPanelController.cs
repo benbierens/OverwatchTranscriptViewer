@@ -1,29 +1,60 @@
-﻿using Godot;
+using Godot;
+using OverwatchTranscript;
+using System;
 
 namespace OverwatchTranscriptViewer
 {
-    public partial class EventsPanelController : Node
-    {
-        private Panel panel;
-        private bool visible = false;
+	public partial class EventsPanelController : Node
+	{
+		public static EventsPanelController Instance;
 
-        public override void _Ready()
-        {
-            panel = GetNode<Panel>("EventsPanel");
-            panel.Visible = false;
+		private Panel panel;
+		private bool visible = false;
+		private ItemList list;
 
-            var list = GetNode<ItemList>("EventsPanel/ItemList");
-            for (var i = 0; i < 1000; i++)
-            {
-                var item = list.AddItem("Item: " + i);
-                list.SetItemDisabled(item, true);
-            }
-        }
+		public override void _Ready()
+		{
+			Instance = this;
 
-        public void Toggle()
-        {
-            visible = !visible;
-            panel.Visible = visible;
-        }
-    }
+			panel = GetNode<Panel>("EventsPanel");
+			list = GetNode<ItemList>("EventsPanel/ItemList");
+
+			panel.Visible = false;
+
+			for (var i = 0; i < 1000; i++)
+			{
+				var item = list.AddItem("Item: " + i + "\n multiline!");
+				list.SetItemDisabled(item, true);
+			}
+		}
+
+		public void Initialize(ITranscriptReader reader)
+		{
+			DeleteAll();
+
+			reader.PreviewEvents(PreviewEvent);
+		}
+
+		public void _on_item_list_item_clicked(long index, Vector2 at_position, long mouse_button_index)
+		{
+		}
+
+		public void Toggle()
+		{
+			visible = !visible;
+			panel.Visible = visible;
+		}
+
+		private bool PreviewEvent(OverwatchEvent e, DateTime utc)
+		{
+			return true;
+		}
+
+		private void DeleteAll()
+		{
+		}
+
+
+	}
 }
+

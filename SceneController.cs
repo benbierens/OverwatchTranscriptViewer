@@ -44,6 +44,7 @@ public class SceneController
 
 		var header = reader.Header;
 		GuiController.Instance.Initialize(header.EarliestUct, header.LatestUtc, header.NumberOfEvents);
+		EventsPanelController.Instance.Initialize(reader);
 
 		SetState(AppState.Stopped);
 	}
@@ -80,6 +81,7 @@ public class SceneController
 
 	public void Quit()
 	{
+		Player.Stop();
 		if (reader != null)
 		{
 			reader.Close();

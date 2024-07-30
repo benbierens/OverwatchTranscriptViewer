@@ -14,6 +14,7 @@ namespace OverwatchTranscript
 		void AddHandler<T>(Action<DateTime, T> handler);
 		(DateTime, long)? Next();
 		TimeSpan? GetDuration();
+		void PreviewEvents(Func<OverwatchEvent, DateTime, bool> previewer);
 		void Close();
 	}
 
@@ -95,6 +96,18 @@ namespace OverwatchTranscript
 				model.Moments[momentIndex].Utc;
 		}
 
+		public void PreviewEvents(Func<OverwatchEvent, DateTime, bool> previewer)
+		{
+			foreach (var moment in model.Moments)
+			{
+				foreach (var e in moment.Events)
+				{
+					var proceed = previewer(e, moment.Utc);
+					if (!proceed) return;
+				}
+			}
+		}
+
 		public void Close()
 		{
 			CheckClosed();
@@ -133,7 +146,7 @@ namespace OverwatchTranscript
 
 		private void CheckClosed()
 		{
-			if (closed) throw new Exception("Transcript has already been written. Cannot modify or write again.");
+			if (closed) throw new Exception("Transcript has already been closed.");
 		}
 	}
 }
