@@ -1,9 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://d274hcvhaome0"]
+[gd_scene load_steps=5 format=3 uid="uid://d274hcvhaome0"]
 
 [ext_resource type="Script" path="res://GuiController.cs" id="1_rdumm"]
+[ext_resource type="Script" path="res://EventsPanelController.cs" id="2_xfhaj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8cqov"]
 bg_color = Color(0.347817, 0.347817, 0.347817, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mad5m"]
+bg_color = Color(0.6, 0.6, 0.6, 0.411765)
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -48,8 +52,69 @@ offset_top = -25.0
 offset_right = 174.0
 offset_bottom = 25.0
 grow_vertical = 2
-text = "Open
+text = "Open File
 "
+
+[node name="Button2" type="Button" parent="GuiController/Panel"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 189.0
+offset_top = -25.0
+offset_right = 339.0
+offset_bottom = 25.0
+grow_vertical = 2
+toggle_mode = true
+text = "Events Panel"
+
+[node name="OptionButton" type="OptionButton" parent="GuiController/Panel"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 355.0
+offset_top = -25.0
+offset_right = 505.0
+offset_bottom = 25.0
+grow_vertical = 2
+item_count = 3
+selected = 0
+popup/item_0/text = "Realtime (1x)"
+popup/item_0/id = 0
+popup/item_1/text = "2x"
+popup/item_1/id = 1
+popup/item_2/text = "5x"
+popup/item_2/id = 2
+
+[node name="Button3" type="Button" parent="GuiController/Panel"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 521.0
+offset_top = -25.0
+offset_right = 671.0
+offset_bottom = 25.0
+grow_vertical = 2
+toggle_mode = true
+text = "Play/Pause"
+
+[node name="Button4" type="Button" parent="GuiController/Panel"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 690.0
+offset_top = -25.0
+offset_right = 840.0
+offset_bottom = 25.0
+grow_vertical = 2
+text = "Reset Camera"
 
 [node name="ProgressBar" type="ProgressBar" parent="GuiController/Panel"]
 custom_minimum_size = Vector2(800, 25)
@@ -59,13 +124,39 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -2.0
-offset_top = -13.5
-offset_right = 2.0
-offset_bottom = 13.5
+offset_left = -104.0
+offset_top = -13.0
+offset_right = 696.0
+offset_bottom = 14.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 20.0
 
+[node name="EventsPanelController" type="Node" parent="GuiController"]
+script = ExtResource("2_xfhaj")
+
+[node name="EventsPanel" type="Panel" parent="GuiController/EventsPanelController"]
+custom_minimum_size = Vector2(700, 0)
+anchors_preset = -1
+anchor_bottom = 1.0
+offset_right = 700.0
+offset_bottom = -120.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mad5m")
+
+[node name="ItemList" type="ItemList" parent="GuiController/EventsPanelController/EventsPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -150.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [connection signal="file_selected" from="GuiController/OpenDialog" to="GuiController" method="_on_file_selected"]
 [connection signal="pressed" from="GuiController/Panel/Button" to="GuiController" method="_on_open_button_pressed"]
+[connection signal="pressed" from="GuiController/Panel/Button2" to="GuiController" method="_on_events_panel_pressed"]
+[connection signal="pressed" from="GuiController/Panel/Button4" to="GuiController" method="_on_reset_camera_pressed"]

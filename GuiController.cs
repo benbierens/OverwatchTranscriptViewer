@@ -1,4 +1,5 @@
 using Godot;
+using OverwatchTranscriptViewer;
 using System;
 
 public partial class GuiController : Node
@@ -7,6 +8,7 @@ public partial class GuiController : Node
 
 	private FileDialog fd;
 	private ProgressBar bar;
+	private EventsPanelController eventsPanel;
 	private double autostart = 0.5;
 		
 	// Called when the node enters the scene tree for the first time.
@@ -14,6 +16,7 @@ public partial class GuiController : Node
 	{
 		Instance = this;
 
+		eventsPanel = GetNode<EventsPanelController>("EventsPanelController");
 		fd = GetNode<FileDialog>("OpenDialog");
 		bar = GetNode<ProgressBar>("Panel/ProgressBar");
 	}
@@ -48,9 +51,20 @@ public partial class GuiController : Node
 		
 		SceneController.Instance.LoadTranscript(filepath);
 	}
+
+	public void _on_reset_camera_pressed()
+	{
+		CameraController.Instance.Reset();
+	}
+
+	public void _on_events_panel_pressed()
+	{
+		eventsPanel.Toggle();
+	}
 	
 	public void _on_file_selected(string path)
 	{
 		GD.Print("file: " + path);
 	}
 }
+
