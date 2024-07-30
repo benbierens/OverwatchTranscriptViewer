@@ -159,5 +159,6 @@ grow_vertical = 2
 [connection signal="file_selected" from="GuiController/OpenDialog" to="GuiController" method="_on_file_selected"]
 [connection signal="pressed" from="GuiController/Panel/Button" to="GuiController" method="_on_open_button_pressed"]
 [connection signal="pressed" from="GuiController/Panel/Button2" to="GuiController" method="_on_events_panel_pressed"]
+[connection signal="item_selected" from="GuiController/Panel/OptionButton" to="GuiController" method="_on_option_button_item_selected"]
 [connection signal="pressed" from="GuiController/Panel/Button3" to="GuiController" method="_on_playpause_pressed"]
 [connection signal="pressed" from="GuiController/Panel/Button4" to="GuiController" method="_on_reset_camera_pressed"]

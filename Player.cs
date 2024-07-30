@@ -8,6 +8,8 @@ namespace OverwatchTranscriptViewer
         private ITranscriptReader reader;
         private bool hold = false;
         private bool playing = false;
+        private float speed = 1.0f;
+        private double timeLeft = 0.0;
 
         public override void _Ready()
         {
@@ -29,6 +31,11 @@ namespace OverwatchTranscriptViewer
             playing = false;
         }
 
+        public void SetSpeed(float speed)
+        {
+            this.speed = speed;
+        }
+
         public void Proceed()
         {
             hold = false;
@@ -37,14 +44,24 @@ namespace OverwatchTranscriptViewer
         public override void _Process(double delta)
         {
             if (!playing) return;
-            if (hold) return;
+            //if (hold) return;
+            if (timeLeft > 0.0)
+            {
+                timeLeft -= delta * speed;
+                if (timeLeft > 0.0) return;
+            }
 
             hold = true;
             var current = reader.Next();
+            var duration = reader.GetDuration();
 
             if (current != null)
             {
                 //GuiController.Instance.UpdateProgressBar(header.EarliestUct, header.LatestUtc, current.Value);
+            }
+            if (duration != null)
+            {
+                timeLeft += duration.Value.TotalSeconds;
             }
         }
 
@@ -55,5 +72,6 @@ namespace OverwatchTranscriptViewer
                 SceneController.Instance.Quit();
             }
         }
+
     }
 }

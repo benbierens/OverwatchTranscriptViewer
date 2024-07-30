@@ -65,6 +65,15 @@ public partial class GuiController : Node
 		SceneController.Instance.LoadTranscript(filepath);
 	}
 
+	public void _on_option_button_item_selected(long index)
+	{
+		var speed = 1.0f;
+		if (index == 1) speed = 2.0f;
+		else if (index == 2) speed = 5.0f;
+
+		SceneController.Instance.UpdatePlaybackSpeed(speed);
+	}
+
 	private void ApplyState(AppState state)
 	{
 		openButton.Disabled = state != AppState.Empty;
@@ -73,3 +82,4 @@ public partial class GuiController : Node
 		GD.Print("gui updated to " + state);
 	}
 }
+

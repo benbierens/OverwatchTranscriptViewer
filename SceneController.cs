@@ -3,6 +3,7 @@ using OverwatchTranscript;
 using OverwatchTranscriptViewer;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class SceneController
 {
@@ -68,6 +69,13 @@ public class SceneController
 		Player.Proceed();
 	}
 
+	public void UpdatePlaybackSpeed(float speed)
+	{
+		AssertState(AppState.Empty, AppState.Stopped);
+		Player.SetSpeed(speed);
+	}
+
+
 	public void Quit()
 	{
 		if (reader != null)
@@ -90,9 +98,9 @@ public class SceneController
 		GD.Print("State = " + state);
 	}
 
-	private void AssertState(AppState expected)
+	private void AssertState(params AppState[] expected)
 	{
-		if (state != expected) throw new Exception("Unexpected state. Was: " + state + " expected: " + expected);
+		if (!expected.Contains(state)) throw new Exception("Unexpected state. Was: " + state + " expected: " + expected);
 	}
 }
 

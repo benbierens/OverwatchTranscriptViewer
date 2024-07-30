@@ -13,6 +13,7 @@ namespace OverwatchTranscript
 		T GetHeader<T>(string key);
 		void AddHandler<T>(Action<DateTime, T> handler);
 		DateTime? Next();
+		TimeSpan? GetDuration();
 		void Close();
 	}
 
@@ -67,6 +68,9 @@ namespace OverwatchTranscript
 			});
 		}
 
+		/// <summary>
+		/// Publishes the events at the next moment in time. Returns that moment.
+		/// </summary>
 		public DateTime? Next()
 		{
 			CheckClosed();
@@ -77,6 +81,18 @@ namespace OverwatchTranscript
 
 			PlayMoment(moment);
 			return moment.Utc;
+		}
+
+		/// <summary>
+		/// Gets the time from the current moment to the next one.
+		/// </summary>
+		public TimeSpan? GetDuration()
+		{
+			if (momentIndex + 1 >= model.Moments.Length) return null;
+			
+			return
+				model.Moments[momentIndex + 1].Utc -
+				model.Moments[momentIndex].Utc;
 		}
 
 		public void Close()
