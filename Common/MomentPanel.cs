@@ -8,10 +8,12 @@ namespace OverwatchTranscriptViewer.Common
 		private static PackedScene labelTemplate;
 		private VBoxContainer container;
 		private Action onClicked;
+		private BaseButton button;
 
 		public override void _Ready()
 		{
 			container = GetNode<VBoxContainer>("VBoxContainer");
+			button = GetNode<BaseButton>("Button");
 
 			if (labelTemplate == null)
 			{
@@ -27,6 +29,11 @@ namespace OverwatchTranscriptViewer.Common
 			{
 				AddLabel("   " + l);
 			}
+		}
+
+		public void SetEnabled(bool enabled)
+		{
+			button.Disabled = !enabled;
 		}
 
 		public void _on_button_pressed()

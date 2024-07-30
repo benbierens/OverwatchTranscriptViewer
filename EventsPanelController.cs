@@ -2,6 +2,8 @@ using Godot;
 using OverwatchTranscript;
 using OverwatchTranscriptViewer.Common;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OverwatchTranscriptViewer
 {
@@ -13,6 +15,7 @@ namespace OverwatchTranscriptViewer
 		private Panel panel;
 		private bool visible = false;
 		private VBoxContainer container;
+		private readonly List<MomentPanel> panels = new List<MomentPanel>();
 
 		public override void _Ready()
 		{
@@ -33,12 +36,7 @@ namespace OverwatchTranscriptViewer
 		{
 			DeleteAll();
 
-			//reader.PreviewEvents(PreviewEvent);
-
-			for (var i = 0; i < 100; i++)
-			{
-				AddItem("header " + i, "event_1_" + i, "event_2_" + i);
-			}
+			reader.PreviewMoments(PreviewMoment);
 		}
 
 		public void Toggle()
@@ -47,20 +45,45 @@ namespace OverwatchTranscriptViewer
 			panel.Visible = visible;
 		}
 
-		//private bool PreviewEvent(OverwatchEvent e, DateTime utc)
-		//{
-		//	return true;
-		//}
+		private bool PreviewMoment(OverwatchMoment m)
+		{
+			AddItem(GetMomentHeader(m), GetMomentEvents(m));
+			return true;
+		}
+
+		private string GetMomentHeader(OverwatchMoment m)
+		{
+			var u = m.Utc;
+			return $"[{u.Hour}:{u.Minute}:{u.Second}.{u.Millisecond}] ({m.Events.Length})";
+		}
+
+		private string[] GetMomentEvents(OverwatchMoment m)
+		{
+			return m.Events.Select(FormatEvent).ToArray();
+		}
+
+		private string FormatEvent(OverwatchEvent e)
+		{
+			return e.Type;
+		}
 
 		private void DeleteAll()
 		{
+			foreach (var p in panels)
+			{
+				p.QueueFree();
+			}
+			panels.Clear();
 		}
 
 		private void AddItem(string header, params string[] eventLines)
 		{
 			var instance = itemTemplate.Instantiate();
 			container.AddChild(instance);
-			(instance as MomentPanel).Initialize(header, () => {
+			var panel = (instance as MomentPanel);
+			
+			panel.Initialize(header, () =>
+			{
 				GD.Print("Click: " + header);
 			}, eventLines);
 		}
