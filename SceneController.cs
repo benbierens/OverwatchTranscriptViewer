@@ -21,7 +21,6 @@ public class SceneController
 		}
 	}
 
-	public GuiController Gui;
 	public Player Player;
 	public event Action<AppState> AppStateChanged;
 
@@ -42,6 +41,9 @@ public class SceneController
 		}
 
 		Player.Initialize(reader);
+
+		var header = reader.Header;
+		GuiController.Instance.Initialize(header.EarliestUct, header.LatestUtc, header.NumberOfEvents);
 
 		SetState(AppState.Stopped);
 	}

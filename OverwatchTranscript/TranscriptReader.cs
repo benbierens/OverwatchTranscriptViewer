@@ -12,7 +12,7 @@ namespace OverwatchTranscript
 		OverwatchCommonHeader Header { get; }
 		T GetHeader<T>(string key);
 		void AddHandler<T>(Action<DateTime, T> handler);
-		DateTime? Next();
+		(DateTime, long)? Next();
 		TimeSpan? GetDuration();
 		void Close();
 	}
@@ -24,7 +24,7 @@ namespace OverwatchTranscript
 		private readonly Dictionary<string, Action<DateTime, string>> handlers = new Dictionary<string, Action<DateTime, string>>();
 		private readonly string workingDir;
 		private OverwatchTranscript model = null!;
-		private int momentIndex = 0;
+		private long momentIndex = 0;
 		private bool closed;
 
 		public TranscriptReader(string workingDir, string inputFilename)
@@ -71,7 +71,7 @@ namespace OverwatchTranscript
 		/// <summary>
 		/// Publishes the events at the next moment in time. Returns that moment.
 		/// </summary>
-		public DateTime? Next()
+		public (DateTime, long)? Next()
 		{
 			CheckClosed();
 			if (momentIndex >= model.Moments.Length) return null;
@@ -80,7 +80,7 @@ namespace OverwatchTranscript
 			momentIndex++;
 
 			PlayMoment(moment);
-			return moment.Utc;
+			return (moment.Utc, momentIndex);
 		}
 
 		/// <summary>

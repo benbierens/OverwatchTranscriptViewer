@@ -7,11 +7,17 @@ public partial class GuiController : Node
 	public static GuiController Instance;
 
 	private FileDialog fd;
-	private ProgressBar bar;
+	private ProgressBar timeBar;
+	private ProgressBar eventsBar;
 	private EventsPanelController eventsPanel;
 	private BaseButton openButton;
 	private OptionButton speedButton;
 	private BaseButton playPauseButton;
+	private DateTime earliestUtc;
+	private TimeSpan totalSpan;
+	private float totalEvents;
+	private Label timeLabel;
+	private Label eventsLabel;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -20,24 +26,43 @@ public partial class GuiController : Node
 
 		eventsPanel = GetNode<EventsPanelController>("EventsPanelController");
 		fd = GetNode<FileDialog>("OpenDialog");
-		bar = GetNode<ProgressBar>("Panel/ProgressBar");
+		timeBar = GetNode<ProgressBar>("Panel/TimeProgressBar");
+		eventsBar = GetNode<ProgressBar>("Panel/EventsProgressBar");
 		openButton = GetNode<BaseButton>("Panel/Button");
 		speedButton = GetNode<OptionButton>("Panel/OptionButton");
 		playPauseButton = GetNode<BaseButton>("Panel/Button3");
+		timeLabel = GetNode<Label>("Panel/TimeLabel");
+		eventsLabel = GetNode<Label>("Panel/EventsLabel");
 
 		ApplyState(AppState.Empty);
 		SceneController.Instance.AppStateChanged += ApplyState;
 	}
 
-	public void UpdateProgressBar(DateTime earliest, DateTime latest, DateTime current)
+	public void Initialize(DateTime earliestUtc, DateTime latestUtc, long totalEvents)
 	{
-		var totalSpan = latest - earliest;
-		var process = current - earliest;
-		var factor = process / totalSpan;
-
-		bar.Value = 100.0 * factor;
+		this.earliestUtc = earliestUtc;
+		totalSpan = latestUtc - earliestUtc;
+		this.totalEvents = totalEvents;
 	}
-	
+
+	public void UpdateProgressBar(DateTime currentTime, long currentEvent)
+	{
+		var process = currentTime - earliestUtc;
+		var factor = process / totalSpan;
+		timeBar.Value = 100.0 * factor;
+		timeLabel.Text = $"Time: ({Short(process.TotalSeconds)} / {Short(totalSpan.TotalSeconds)})";
+
+		float current = currentEvent;
+		factor = current / totalEvents;
+		eventsBar.Value = 100.0 * factor;
+		eventsLabel.Text = $"Events: ({Short(current)} / {Short(totalEvents)})";
+	}
+
+	private string Short(double d)
+	{
+		return d.ToString("F1");
+	}
+
 	public void _on_open_button_pressed()
 	{
 		fd.Visible = true;

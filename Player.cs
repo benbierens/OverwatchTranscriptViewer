@@ -57,7 +57,7 @@ namespace OverwatchTranscriptViewer
 
             if (current != null)
             {
-                //GuiController.Instance.UpdateProgressBar(header.EarliestUct, header.LatestUtc, current.Value);
+                GuiController.Instance.UpdateProgressBar(current.Value.Item1, current.Value.Item2);
             }
             if (duration != null)
             {
