@@ -3,7 +3,6 @@ using OverwatchTranscript;
 using OverwatchTranscriptViewer.Common;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace OverwatchTranscriptViewer
 {
@@ -15,6 +14,9 @@ namespace OverwatchTranscriptViewer
 		private Panel panel;
 		private bool visible = false;
 		private VBoxContainer container;
+		private Label infoLabel;
+		private BaseButton stepButton;
+		private Label eventInfo;
 		private readonly List<MomentPanel> panels = new List<MomentPanel>();
 
 		public override void _Ready()
@@ -23,6 +25,9 @@ namespace OverwatchTranscriptViewer
 
 			panel = GetNode<Panel>("EventsPanel");
 			container = GetNode<VBoxContainer>("EventsPanel/ScrollContainer/VBoxContainer");
+			infoLabel = GetNode<Label>("EventsPanel/InfoHeader");
+			stepButton = GetNode<BaseButton>("EventsPanel/Button");
+			eventInfo = GetNode<Label>("EventsPanel/EventInfo");
 
 			panel.Visible = false;
 
@@ -30,13 +35,20 @@ namespace OverwatchTranscriptViewer
 			{
 				itemTemplate = GD.Load<PackedScene>("res://Common/moment_panel_container.tscn");
 			}
+
+			ApplyState(AppState.Empty);
+			SceneController.Instance.AppStateChanged += ApplyState;
 		}
 
 		public void Initialize(ITranscriptReader reader)
 		{
 			DeleteAll();
-
-			reader.PreviewMoments(PreviewMoment);
+			var numberOfEvents = reader.Header.NumberOfEvents;
+			var totalSpan = reader.Header.LatestUtc - reader.Header.EarliestUct;
+			var nl = System.Environment.NewLine;
+			infoLabel.Text = $"{numberOfEvents} events over {Utils.FormatDuration(totalSpan)}{nl}" +
+				$"First event: {Utils.FormateDateTime(reader.Header.EarliestUct)}{nl}" +
+				$"Last event: {Utils.FormateDateTime(reader.Header.LatestUtc)}";
 		}
 
 		public void Toggle()
@@ -45,26 +57,30 @@ namespace OverwatchTranscriptViewer
 			panel.Visible = visible;
 		}
 
-		private bool PreviewMoment(OverwatchMoment m)
+		public void AddEntry(DateTime utc, string header, params string[] lines)
 		{
-			AddItem(GetMomentHeader(m), GetMomentEvents(m));
-			return true;
+			AddItem(GetHeader(utc, header), lines);
+
+			while (panels.Count > 20)
+			{
+				panels[0].QueueFree();
+				panels.RemoveAt(0);
+			}
 		}
 
-		private string GetMomentHeader(OverwatchMoment m)
+		public void SetCurrentEventDuration(double duration)
 		{
-			var u = m.Utc;
-			return $"[{u.Hour}:{u.Minute}:{u.Second}.{u.Millisecond}] ({m.Events.Length})";
+			eventInfo.Text = Utils.FormatDuration(TimeSpan.FromSeconds(duration));
 		}
 
-		private string[] GetMomentEvents(OverwatchMoment m)
+		public void _on_step_button_pressed()
 		{
-			return m.Events.Select(FormatEvent).ToArray();
+			SceneController.Instance.Step();
 		}
 
-		private string FormatEvent(OverwatchEvent e)
+		private string GetHeader(DateTime utc, string headerContent)
 		{
-			return e.Type;
+			return $"[{Utils.FormateDateTime(utc)}] {headerContent}";
 		}
 
 		private void DeleteAll()
@@ -81,12 +97,17 @@ namespace OverwatchTranscriptViewer
 			var instance = itemTemplate.Instantiate();
 			container.AddChild(instance);
 			var panel = (instance as MomentPanel);
+			panels.Add(panel);
 			
 			panel.Initialize(header, () =>
 			{
 				GD.Print("Click: " + header);
 			}, eventLines);
 		}
+
+		private void ApplyState(AppState state)
+		{
+			stepButton.Disabled = state != AppState.Stopped;
+		}
 	}
 }
-

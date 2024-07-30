@@ -45,7 +45,7 @@ public partial class CameraController : Node3D
 			if (lastPressed)
 			{
 				var delta = motion.Relative * moveSpeed;
-				Translate(new Vector3(delta.X, -delta.Y, 0.0f));
+				Translate(new Vector3(-delta.X, delta.Y, 0.0f));
 			}
 		}
 	}

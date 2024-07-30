@@ -30,65 +30,84 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 	public override void _Process(double delta)
 	{
 	}
-	
+
 	public void HandleEvent(DateTime utc, OverwatchCodexEvent @event)
 	{
-		if (@event.NodeStarting != null) Handle(@event, @event.NodeStarting); 
-		if (@event.NodeStarted != null) Handle(@event, @event.NodeStarted);
-		if (@event.BootstrapConfig != null) Handle(@event, @event.BootstrapConfig);
-		if (@event.FileUploaded != null) Handle(@event, @event.FileUploaded);
-		if (@event.FileDownloaded != null) Handle(@event, @event.FileDownloaded);
-		if (@event.BlockReceived != null) Handle(@event, @event.BlockReceived);
+		if (@event.NodeStarting != null) Handle(utc, @event, @event.NodeStarting);
+		if (@event.NodeStarted != null) Handle(utc, @event, @event.NodeStarted);
+		if (@event.BootstrapConfig != null) Handle(utc, @event, @event.BootstrapConfig);
+		if (@event.FileUploaded != null) Handle(utc, @event, @event.FileUploaded);
+		if (@event.FileDownloaded != null) Handle(utc, @event, @event.FileDownloaded);
+		if (@event.BlockReceived != null) Handle(utc, @event, @event.BlockReceived);
 	}
 
-	private void Handle(OverwatchCodexEvent @event, BlockReceivedEvent blockReceived)
+	private void Handle(DateTime utc, OverwatchCodexEvent @event, BlockReceivedEvent blockReceived)
 	{
 		SpawnTransferEvent(
-			source: Lookup.Get<CodexNode>(blockReceived.SenderPeerId),
-			target: Lookup.Get<CodexNode>(@event.PeerId),
+			source: GetCodex(blockReceived.SenderPeerId),
+			target: GetCodex(@event.PeerId),
 			label: blockReceived.BlockAddress
 		);
+
+		AddToPanel(utc, $"{@event.Name} received block.",
+			"Block: " + blockReceived.BlockAddress,
+			"Sender: " + blockReceived.SenderPeerId);
 	}
 
-	private void Handle(OverwatchCodexEvent @event, FileDownloadedEvent fileDownloaded)
+	private void Handle(DateTime utc, OverwatchCodexEvent @event, FileDownloadedEvent fileDownloaded)
 	{
 		SpawnFileEvent(
-			target: Lookup.Get<CodexNode>(@event.PeerId),
+			target: GetCodex(@event.PeerId),
 			cid: fileDownloaded.Cid,
 			backwards: true
 		);
+
+		AddToPanel(utc, $"{@event.Name} downloaded file.", "Cid: " + fileDownloaded.Cid);
 	}
 
-	private void Handle(OverwatchCodexEvent @event, FileUploadedEvent fileUploaded)
+	private void Handle(DateTime utc, OverwatchCodexEvent @event, FileUploadedEvent fileUploaded)
 	{
 		SpawnFileEvent(
-			target: Lookup.Get<CodexNode>(@event.PeerId),
+			target: GetCodex(@event.PeerId),
 			cid: fileUploaded.Cid,
 			backwards: false
 		);
+
+		AddToPanel(utc, $"{@event.Name} uploaded file.", "Cid: " + fileUploaded.Cid);
 	}
 
-	private void Handle(OverwatchCodexEvent @event, BootstrapConfigEvent bootstrapConfig)
+	private void Handle(DateTime utc, OverwatchCodexEvent @event, BootstrapConfigEvent bootstrapConfig)
 	{
-		var from = Lookup.Get<CodexNode>(@event.PeerId);
-		var to = Lookup.Get<CodexNode>(bootstrapConfig.BootstrapPeerId);
+		var from = GetCodex(@event.PeerId);
+		var to = GetCodex(bootstrapConfig.BootstrapPeerId);
 
 		var line = SpawnConnectionLine();
 		line.Initialize(from, to, thickness: 0.08f, speed: 2.5f, new Color(0.2f, 0.2f, 0.2f, 0.4f), () =>
 		{
 			SceneController.Instance.Proceed();
 		});
+
+		AddToPanel(utc, $"{@event.Name} bootstrapped.", "bootnode: " + bootstrapConfig.BootstrapPeerId);
 	}
 
-	private void Handle(OverwatchCodexEvent @event, NodeStartingEvent nodeStarting)
+	private void Handle(DateTime utc, OverwatchCodexEvent @event, NodeStartingEvent nodeStarting)
 	{
 		var node = SpawnCodexNode();
 		node.Starting(@event.Name, @event.PeerId);
+
+		AddToPanel(utc, $"{@event.Name} is starting...");
 	}
 
-	private void Handle(OverwatchCodexEvent @event, NodeStartedEvent nodeStarted)
+	private void Handle(DateTime utc, OverwatchCodexEvent @event, NodeStartedEvent nodeStarted)
 	{
 		GetCodex(@event.Name).Started();
+
+		AddToPanel(utc, $"{@event.Name} has started.");
+	}
+
+	private void AddToPanel(DateTime utc, string msg, params string[] lines)
+	{
+		EventsPanelController.Instance.AddEntry(utc, msg, lines);
 	}
 
 	private CodexNode GetCodex(string name)

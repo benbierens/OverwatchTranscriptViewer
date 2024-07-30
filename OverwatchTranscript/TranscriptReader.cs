@@ -14,7 +14,6 @@ namespace OverwatchTranscript
 		void AddHandler<T>(Action<DateTime, T> handler);
 		(DateTime, long)? Next();
 		TimeSpan? GetDuration();
-		void PreviewMoments(Func<OverwatchMoment, bool> previewer);
 		void Close();
 	}
 
@@ -89,20 +88,12 @@ namespace OverwatchTranscript
 		/// </summary>
 		public TimeSpan? GetDuration()
 		{
-			if (momentIndex + 1 >= model.Moments.Length) return null;
+			if (momentIndex - 1 < 0) return null;
+			if (momentIndex >= model.Moments.Length) return null;
 			
 			return
-				model.Moments[momentIndex + 1].Utc -
-				model.Moments[momentIndex].Utc;
-		}
-
-		public void PreviewMoments(Func<OverwatchMoment, bool> previewer)
-		{
-			foreach (var moment in model.Moments)
-			{
-				var proceed = previewer(moment);
-				if (!proceed) return;
-			}
+				model.Moments[momentIndex].Utc -
+				model.Moments[momentIndex - 1].Utc;
 		}
 
 		public void Close()

@@ -72,6 +72,11 @@ public class SceneController
 		Player.Proceed();
 	}
 
+	public void Step()
+	{
+		Player.StepOne();
+	}
+
 	public void UpdatePlaybackSpeed(float speed)
 	{
 		AssertState(AppState.Empty, AppState.Stopped);

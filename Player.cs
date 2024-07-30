@@ -1,5 +1,6 @@
 ﻿using Godot;
 using OverwatchTranscript;
+using System;
 
 namespace OverwatchTranscriptViewer
 {
@@ -31,6 +32,12 @@ namespace OverwatchTranscriptViewer
             playing = false;
         }
 
+        public void StepOne()
+        {
+            if (playing) throw new Exception("already playing");
+            StepOneMoment();
+        }
+
         public void SetSpeed(float speed)
         {
             this.speed = speed;
@@ -44,7 +51,6 @@ namespace OverwatchTranscriptViewer
         public override void _Process(double delta)
         {
             if (!playing) return;
-            //if (hold) return;
             if (timeLeft > 0.0)
             {
                 timeLeft -= delta * speed;
@@ -52,6 +58,16 @@ namespace OverwatchTranscriptViewer
             }
 
             hold = true;
+            var duration = StepOneMoment();
+            if (duration != null)
+            {
+                timeLeft += duration.Value.TotalSeconds;
+                EventsPanelController.Instance.SetCurrentEventDuration(timeLeft);
+            }
+        }
+
+        private TimeSpan? StepOneMoment()
+        {
             var current = reader.Next();
             var duration = reader.GetDuration();
 
@@ -59,10 +75,8 @@ namespace OverwatchTranscriptViewer
             {
                 GuiController.Instance.UpdateProgressBar(current.Value.Item1, current.Value.Item2);
             }
-            if (duration != null)
-            {
-                timeLeft += duration.Value.TotalSeconds;
-            }
+
+            return duration;
         }
 
         public override void _Notification(int what)
@@ -72,6 +86,5 @@ namespace OverwatchTranscriptViewer
                 SceneController.Instance.Quit();
             }
         }
-
     }
 }

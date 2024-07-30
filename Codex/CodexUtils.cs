@@ -1,4 +1,6 @@
-﻿namespace OverwatchTranscriptViewer.Codex
+﻿using System;
+
+namespace OverwatchTranscriptViewer.Codex
 {
     public static class CodexUtils
     {

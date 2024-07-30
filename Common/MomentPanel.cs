@@ -14,6 +14,8 @@ namespace OverwatchTranscriptViewer.Common
 		{
 			container = GetNode<VBoxContainer>("VBoxContainer");
 			button = GetNode<BaseButton>("Button");
+			button.Disabled = true;
+			button.Visible = false;
 
 			if (labelTemplate == null)
 			{
