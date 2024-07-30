@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://03cn1pqjg2ub"]
+
+[node name="MomentPanelLabel" type="Label"]
+text = "Moment info"

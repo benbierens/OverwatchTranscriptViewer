@@ -215,28 +215,6 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MomentPanelContainer" type="PanelContainer" parent="GuiController/EventsPanelController/EventsPanel/ScrollContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="GuiController/EventsPanelController/EventsPanel/ScrollContainer/VBoxContainer/MomentPanelContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="GuiController/EventsPanelController/EventsPanel/ScrollContainer/VBoxContainer/MomentPanelContainer/VBoxContainer"]
-layout_mode = 2
-text = "Moment info"
-
-[node name="Label2" type="Label" parent="GuiController/EventsPanelController/EventsPanel/ScrollContainer/VBoxContainer/MomentPanelContainer/VBoxContainer"]
-layout_mode = 2
-text = "- Event Info"
-
-[node name="Label3" type="Label" parent="GuiController/EventsPanelController/EventsPanel/ScrollContainer/VBoxContainer/MomentPanelContainer/VBoxContainer"]
-layout_mode = 2
-text = "- Event Info"
-
-[node name="Label4" type="Label" parent="GuiController/EventsPanelController/EventsPanel/ScrollContainer/VBoxContainer/MomentPanelContainer/VBoxContainer"]
-layout_mode = 2
-text = "- Event Info"
-
 [connection signal="file_selected" from="GuiController/OpenDialog" to="GuiController" method="_on_file_selected"]
 [connection signal="pressed" from="GuiController/Panel/Button" to="GuiController" method="_on_open_button_pressed"]
 [connection signal="pressed" from="GuiController/Panel/Button2" to="GuiController" method="_on_events_panel_pressed"]

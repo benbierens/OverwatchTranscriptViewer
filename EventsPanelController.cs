@@ -1,5 +1,6 @@
 using Godot;
 using OverwatchTranscript;
+using OverwatchTranscriptViewer.Common;
 using System;
 
 namespace OverwatchTranscriptViewer
@@ -8,23 +9,23 @@ namespace OverwatchTranscriptViewer
 	{
 		public static EventsPanelController Instance;
 
+		private static PackedScene itemTemplate;
 		private Panel panel;
 		private bool visible = false;
-		private ItemList list;
+		private VBoxContainer container;
 
 		public override void _Ready()
 		{
 			Instance = this;
 
 			panel = GetNode<Panel>("EventsPanel");
-			list = GetNode<ItemList>("EventsPanel/ItemList");
+			container = GetNode<VBoxContainer>("EventsPanel/ScrollContainer/VBoxContainer");
 
 			panel.Visible = false;
 
-			for (var i = 0; i < 1000; i++)
+			if (itemTemplate == null)
 			{
-				var item = list.AddItem("Item: " + i + "\n multiline!");
-				list.SetItemDisabled(item, true);
+				itemTemplate = GD.Load<PackedScene>("res://Common/moment_panel_container.tscn");
 			}
 		}
 
@@ -32,11 +33,12 @@ namespace OverwatchTranscriptViewer
 		{
 			DeleteAll();
 
-			reader.PreviewEvents(PreviewEvent);
-		}
+			//reader.PreviewEvents(PreviewEvent);
 
-		public void _on_item_list_item_clicked(long index, Vector2 at_position, long mouse_button_index)
-		{
+			for (var i = 0; i < 100; i++)
+			{
+				AddItem("header " + i, "event_1_" + i, "event_2_" + i);
+			}
 		}
 
 		public void Toggle()
@@ -45,16 +47,23 @@ namespace OverwatchTranscriptViewer
 			panel.Visible = visible;
 		}
 
-		private bool PreviewEvent(OverwatchEvent e, DateTime utc)
-		{
-			return true;
-		}
+		//private bool PreviewEvent(OverwatchEvent e, DateTime utc)
+		//{
+		//	return true;
+		//}
 
 		private void DeleteAll()
 		{
 		}
 
-
+		private void AddItem(string header, params string[] eventLines)
+		{
+			var instance = itemTemplate.Instantiate();
+			container.AddChild(instance);
+			(instance as MomentPanel).Initialize(header, () => {
+				GD.Print("Click: " + header);
+			}, eventLines);
+		}
 	}
 }
 
