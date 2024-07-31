@@ -23,7 +23,7 @@ script = ExtResource("1_rdumm")
 [node name="OpenDialog" type="FileDialog" parent="GuiController"]
 title = "Open a File"
 initial_position = 2
-size = Vector2i(450, 350)
+size = Vector2i(900, 800)
 ok_button_text = "Open"
 file_mode = 0
 access = 2

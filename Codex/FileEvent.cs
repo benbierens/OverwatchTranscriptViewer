@@ -5,6 +5,7 @@ namespace OverwatchTranscriptViewer.Codex
 {
 	public partial class FileEvent : Node3D
 	{
+		private readonly Vector3 sourcePosition = new Vector3(10.0f, 10.0f, 10.0f);
 		private Node3D visual;
 		//private BaseMaterial3D material;
 		private float factor;
@@ -33,8 +34,8 @@ namespace OverwatchTranscriptViewer.Codex
 			Transform = new Transform3D
 			{
 				Origin = backwards ?
-					target.Transform.Origin.Lerp(Vector3.Zero, factor) :
-					Vector3.Zero.Lerp(target.Transform.Origin, factor),
+					target.Transform.Origin.Lerp(sourcePosition, factor) :
+					sourcePosition.Lerp(target.Transform.Origin, factor),
 				Basis = new Basis(Quaternion.Identity)
 			};
 		}

@@ -33,7 +33,7 @@ public class SceneController
 	{
 		AssertState(AppState.Empty);
 
-		reader = Transcript.NewReader(filepath);
+		if (!TryLoadFile(filepath)) return;
 
 		foreach (var handler in handlerRegistrations)
 		{
@@ -83,13 +83,27 @@ public class SceneController
 		Player.SetSpeed(speed);
 	}
 
-
 	public void Quit()
 	{
 		Player.Stop();
 		if (reader != null)
 		{
 			reader.Close();
+		}
+	}
+
+	private bool TryLoadFile(string filepath)
+	{
+		try
+		{
+			reader = Transcript.NewReader(filepath);
+			return true;
+		}
+		catch (Exception ex)
+		{
+			reader = null;
+			GD.Print("Failed to load file: " + ex);
+			return false;
 		}
 	}
 

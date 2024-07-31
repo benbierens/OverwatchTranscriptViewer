@@ -1,6 +1,7 @@
 using Godot;
 using OverwatchTranscriptViewer;
 using System;
+using System.IO;
 
 public partial class GuiController : Node
 {
@@ -85,9 +86,9 @@ public partial class GuiController : Node
 	
 	public void _on_file_selected(string path)
 	{
-		var filepath = @"d:\Projects\cs-codex-dist-tests\Tests\CodexLongTests\bin\Debug\net7.0\CodexTestLogs\2024-07\29\12-10-59Z_MultiPeerDownloadTests\MultiPeerDownload[10,100]_000014.owts";
+		if (!File.Exists(path)) return;
 
-		SceneController.Instance.LoadTranscript(filepath);
+		SceneController.Instance.LoadTranscript(path);
 	}
 
 	public void _on_option_button_item_selected(long index)

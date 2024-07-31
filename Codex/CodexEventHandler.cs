@@ -137,7 +137,7 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		var template = GD.Load<PackedScene>("res://Codex/file_event.tscn");
 		var instance = template.Instantiate();
 		AddChild(instance);
-		(instance as FileEvent).Initialize(target, cid, speed: 0.9f, backwards, whenDone: () =>
+		(instance as FileEvent).Initialize(target, cid, speed: 0.4f, backwards, whenDone: () =>
 		{
 			SceneController.Instance.Proceed();
 		});

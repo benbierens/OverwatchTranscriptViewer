@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://Codex/FileEvent.cs" id="1_gr51y"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_tbqhu"]
-radius = 0.25
-height = 0.5
+radius = 0.12
+height = 0.25
 radial_segments = 32
 rings = 16
 
