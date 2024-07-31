@@ -6,8 +6,8 @@ using System.Collections.Generic;
 
 namespace OverwatchTranscriptViewer
 {
-	public partial class EventsPanelController : Node
-	{
+	public partial class EventsPanelController : Node, IScriptEventHandler
+    {
 		public static EventsPanelController Instance;
 
 		private static PackedScene itemTemplate;
@@ -38,20 +38,31 @@ namespace OverwatchTranscriptViewer
 
 			ApplyState(AppState.Empty);
 			SceneController.Instance.AppStateChanged += ApplyState;
+			SceneController.Instance.RegisterScriptEventHandler(this);
 		}
 
-		public void Initialize(ITranscriptReader reader)
+		public void Initialize(ITranscriptReader reader, Placer placer)
 		{
+			reader.AddMomentHandler(HandleMoment);
+
 			DeleteAll();
+
 			var numberOfEvents = reader.Header.NumberOfEvents;
-			var totalSpan = reader.Header.LatestUtc - reader.Header.EarliestUct;
+			var totalSpan = reader.Header.LatestUtc - reader.Header.EarliestUtc;
 			var nl = System.Environment.NewLine;
-			infoLabel.Text = $"{numberOfEvents} events over {Utils.FormatDuration(totalSpan)}{nl}" +
-				$"First event: {Utils.FormateDateTime(reader.Header.EarliestUct)}{nl}" +
+			infoLabel.Text = $"Moments: {reader.Header.NumberOfMoments} - " +
+				$"Events: {numberOfEvents}{nl}" +
+				$"Total duration: {Utils.FormatDuration(totalSpan)}{nl}" +
+				$"First event: {Utils.FormateDateTime(reader.Header.EarliestUtc)}{nl}" +
 				$"Last event: {Utils.FormateDateTime(reader.Header.LatestUtc)}";
 		}
 
-		public void Toggle()
+        private void HandleMoment(ActivateMoment m)
+        {
+            SetCurrentMomentDuration(m.Duration);
+        }
+
+        public void Toggle()
 		{
 			visible = !visible;
 			panel.Visible = visible;
@@ -68,10 +79,17 @@ namespace OverwatchTranscriptViewer
 			}
 		}
 
-		public void SetCurrentEventDuration(double duration)
+		public void SetCurrentMomentDuration(TimeSpan? momentDuration)
 		{
-			eventInfo.Text = Utils.FormatDuration(TimeSpan.FromSeconds(duration));
-		}
+			if (momentDuration.HasValue)
+			{
+                eventInfo.Text = Utils.FormatDuration(momentDuration.Value);
+            }
+			else
+			{
+				eventInfo.Text = "Playback fininshed";
+			}
+        }
 
 		public void _on_step_button_pressed()
 		{

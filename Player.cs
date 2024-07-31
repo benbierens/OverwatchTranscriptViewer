@@ -20,6 +20,8 @@ namespace OverwatchTranscriptViewer
         public void Initialize(ITranscriptReader reader)
         {
             this.reader = reader;
+
+            reader.AddMomentHandler(HandleMoment);
         }
 
         public void Play()
@@ -58,25 +60,23 @@ namespace OverwatchTranscriptViewer
             }
 
             hold = true;
-            var duration = StepOneMoment();
-            if (duration != null)
-            {
-                timeLeft += duration.Value.TotalSeconds;
-                EventsPanelController.Instance.SetCurrentEventDuration(timeLeft);
-            }
+            StepOneMoment();
         }
 
-        private TimeSpan? StepOneMoment()
+        private void HandleMoment(ActivateMoment moment)
         {
-            var current = reader.Next();
-            var duration = reader.GetDuration();
-
-            if (current != null)
+            if (!moment.Duration.HasValue)
             {
-                GuiController.Instance.UpdateProgressBar(current.Value.Item1, current.Value.Item2);
+                Stop();
+                GD.Print("Playback finished.");
+                return;
             }
+            timeLeft += moment.Duration.Value.TotalSeconds;
+        }
 
-            return duration;
+        private void StepOneMoment()
+        {
+            reader.Next();
         }
 
         public override void _Notification(int what)

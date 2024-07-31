@@ -42,10 +42,6 @@ public class SceneController
 
 		Player.Initialize(reader);
 
-		var header = reader.Header;
-		GuiController.Instance.Initialize(header.EarliestUct, header.LatestUtc, header.NumberOfEvents);
-		EventsPanelController.Instance.Initialize(reader);
-
 		SetState(AppState.Stopped);
 	}
 

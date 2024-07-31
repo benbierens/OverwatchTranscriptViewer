@@ -1,12 +1,11 @@
 using Godot;
+using OverwatchTranscript;
 using OverwatchTranscriptViewer;
 using System;
 using System.IO;
 
-public partial class GuiController : Node
+public partial class GuiController : Node, IScriptEventHandler
 {
-	public static GuiController Instance;
-
 	private FileDialog fd;
 	private ProgressBar timeBar;
 	private ProgressBar eventsBar;
@@ -16,15 +15,13 @@ public partial class GuiController : Node
 	private BaseButton playPauseButton;
 	private DateTime earliestUtc;
 	private TimeSpan totalSpan;
-	private float totalEvents;
+	private float totalMoments;
 	private Label timeLabel;
 	private Label eventsLabel;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		Instance = this;
-
 		eventsPanel = GetNode<EventsPanelController>("EventsPanelController");
 		fd = GetNode<FileDialog>("OpenDialog");
 		timeBar = GetNode<ProgressBar>("Panel/TimeProgressBar");
@@ -37,32 +34,17 @@ public partial class GuiController : Node
 
 		ApplyState(AppState.Empty);
 		SceneController.Instance.AppStateChanged += ApplyState;
+		SceneController.Instance.RegisterScriptEventHandler(this);
 	}
 
-	public void Initialize(DateTime earliestUtc, DateTime latestUtc, long totalEvents)
+	public void Initialize(ITranscriptReader reader, Placer plaer)
 	{
-		this.earliestUtc = earliestUtc;
-		totalSpan = latestUtc - earliestUtc;
-		this.totalEvents = totalEvents;
-	}
+        earliestUtc = reader.Header.EarliestUtc;
+        totalSpan = reader.Header.LatestUtc - earliestUtc;
+        totalMoments = reader.Header.NumberOfMoments;
 
-	public void UpdateProgressBar(DateTime currentTime, long currentEvent)
-	{
-		var process = currentTime - earliestUtc;
-		var factor = process / totalSpan;
-		timeBar.Value = 100.0 * factor;
-		timeLabel.Text = $"Time: ({Short(process.TotalSeconds)} / {Short(totalSpan.TotalSeconds)})";
-
-		float current = currentEvent;
-		factor = current / totalEvents;
-		eventsBar.Value = 100.0 * factor;
-		eventsLabel.Text = $"Events: ({Short(current)} / {Short(totalEvents)})";
-	}
-
-	private string Short(double d)
-	{
-		return d.ToString("F1");
-	}
+		reader.AddMomentHandler(HandleMoment);
+    }
 
 	public void _on_open_button_pressed()
 	{
@@ -100,12 +82,34 @@ public partial class GuiController : Node
 		SceneController.Instance.UpdatePlaybackSpeed(speed);
 	}
 
-	private void ApplyState(AppState state)
+    private void HandleMoment(ActivateMoment m)
+    {
+        UpdateProgressBars(m.Utc, m.Index);
+    }
+
+    private void UpdateProgressBars(DateTime currentTime, long currentMoment)
+    {
+        var process = currentTime - earliestUtc;
+        var factor = process / totalSpan;
+        timeBar.Value = 100.0 * factor;
+        timeLabel.Text = $"Time: ({Short(process.TotalSeconds)} / {Short(totalSpan.TotalSeconds)})";
+
+        float current = currentMoment;
+        factor = current / totalMoments;
+        eventsBar.Value = 100.0 * factor;
+        eventsLabel.Text = $"Moments: ({Short(current)} / {Short(totalMoments)})";
+    }
+
+    private string Short(double d)
+    {
+        return d.ToString("F1");
+    }
+
+    private void ApplyState(AppState state)
 	{
 		openButton.Disabled = state != AppState.Empty;
 		speedButton.Disabled = state != AppState.Stopped;
 		playPauseButton.Disabled = state != AppState.Stopped && state != AppState.Playing;
-		GD.Print("gui updated to " + state);
 	}
 }
 
