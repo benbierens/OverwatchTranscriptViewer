@@ -5,13 +5,13 @@ namespace OverwatchTranscriptViewer.Codex
 {
 	public partial class FileEvent : Node3D
 	{
-		private readonly Vector3 sourcePosition = new Vector3(10.0f, 10.0f, 10.0f);
+		private Vector3 sourcePosition = Vector3.Zero;
 		private Node3D visual;
 		//private BaseMaterial3D material;
 		private float factor;
 		private bool backwards;
-		private float speed;
-		private Action whenDone;
+		private double timeLeft;
+		private double totalTime;
 		private Node3D target;
 
 		public override void _Ready()
@@ -23,14 +23,17 @@ namespace OverwatchTranscriptViewer.Codex
 
 		public override void _Process(double delta)
 		{
-			factor += Convert.ToSingle(delta) * speed;
-			if (factor > 1.0f)
+			if (timeLeft <= 0.0) return;
+
+			timeLeft -= delta;
+			if (timeLeft <= 0.0)
 			{
-				whenDone();
+				SceneController.Instance.AnimationFinished();
 				QueueFree();
 				return;
 			}
 
+			float factor = 1.0f - Convert.ToSingle(timeLeft / totalTime);
 			Transform = new Transform3D
 			{
 				Origin = backwards ?
@@ -40,11 +43,15 @@ namespace OverwatchTranscriptViewer.Codex
 			};
 		}
 
-		public void Initialize(Node3D target, string cid, float speed, bool backwards, Action whenDone)
+		public void Initialize(Node3D target, string cid, bool backwards, double duration)
 		{
+			SceneController.Instance.AnimationBegin();
+
 			this.target = target;
-			this.speed = speed;
-			this.whenDone = whenDone;
+			sourcePosition = target.Transform.Origin * 2.0f;
+			if (duration < 1.0) duration = 1.0;
+			timeLeft = duration;
+			totalTime = duration;
 			this.backwards = backwards;
 			factor = 0.0f;
 

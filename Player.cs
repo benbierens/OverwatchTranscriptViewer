@@ -7,10 +7,13 @@ namespace OverwatchTranscriptViewer
     public partial class Player : Node
     {
         private ITranscriptReader reader;
-        private bool hold = false;
+        private readonly object countLock = new object();
+        private int animCount = 0;
         private bool playing = false;
         private float speed = 1.0f;
         private double timeLeft = 0.0;
+
+        private bool stepped = false;
 
         public override void _Ready()
         {
@@ -37,7 +40,9 @@ namespace OverwatchTranscriptViewer
         public void StepOne()
         {
             if (playing) throw new Exception("already playing");
+            if (AnimationConfig.WaitTillFinished && animCount > 0) return;
             StepOneMoment();
+            stepped = true;
         }
 
         public void SetSpeed(float speed)
@@ -45,22 +50,50 @@ namespace OverwatchTranscriptViewer
             this.speed = speed;
         }
 
-        public void Proceed()
+        public void AnimationBegin()
         {
-            hold = false;
+            lock (countLock)
+            {
+                animCount++;
+            }
+        }
+
+        public void AnimationFinished()
+        {
+            lock (countLock)
+            {
+                animCount--;
+            }
         }
 
         public override void _Process(double delta)
         {
             if (!playing) return;
+
             if (timeLeft > 0.0)
             {
                 timeLeft -= delta * speed;
                 if (timeLeft > 0.0) return;
             }
 
-            hold = true;
+            if (AnimationConfig.WaitTillFinished && animCount > 0)
+            {
+                EventsPanelController.Instance.WaitingForAnim();
+                return;
+            }
+
             StepOneMoment();
+        }
+
+        public TimeSpan? ApplySpeedToDuration(TimeSpan? duration)
+        {
+            if (duration == null) return null;
+            return TimeSpan.FromSeconds(ApplySpeedToDuration(duration.Value.TotalSeconds));
+        }
+
+        public double ApplySpeedToDuration(double duration)
+        {
+            return Math.Min(duration * (1.0 / speed), AnimationConfig.MaxMomentDuration);
         }
 
         private void HandleMoment(ActivateMoment moment)
@@ -71,7 +104,7 @@ namespace OverwatchTranscriptViewer
                 GD.Print("Playback finished.");
                 return;
             }
-            timeLeft += moment.Duration.Value.TotalSeconds;
+            timeLeft = Math.Min(moment.Duration.Value.TotalSeconds, AnimationConfig.MaxMomentDuration);
         }
 
         private void StepOneMoment()

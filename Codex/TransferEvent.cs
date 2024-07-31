@@ -9,8 +9,8 @@ namespace OverwatchTranscriptViewer.Codex
 		//private BaseMaterial3D material;
 		private float factor;
 		private bool backwards;
-		private float speed;
-		private Action whenDone;
+		private double timeLeft;
+		private double totalTime;
 		private Node3D source;
 		private Node3D target;
 
@@ -23,14 +23,18 @@ namespace OverwatchTranscriptViewer.Codex
 
 		public override void _Process(double delta)
 		{
-			factor += Convert.ToSingle(delta) * speed;
-			if (factor > 1.0f)
+			if (timeLeft <= 0.0) return;
+
+			timeLeft -= delta;
+			if (timeLeft <= 0.0)
 			{
-				//whenDone();
+				if (AnimationConfig.WaitForBlockTransferEvents)
+					SceneController.Instance.AnimationFinished();
 				QueueFree();
 				return;
 			}
 
+			float factor = 1.0f - Convert.ToSingle(timeLeft / totalTime);
 			Transform = new Transform3D
 			{
 				Origin = source.Transform.Origin.Lerp(target.Transform.Origin, factor),
@@ -38,15 +42,19 @@ namespace OverwatchTranscriptViewer.Codex
 			};
 		}
 
-		public void Initialize(Node3D source, Node3D target, string label, float speed, Action whenDone)
+		public void Initialize(Node3D source, Node3D target, string label, double totalTime)
 		{
+			if (AnimationConfig.WaitForBlockTransferEvents)
+				SceneController.Instance.AnimationBegin();
+
 			this.source = source;
 			this.target = target;
-			this.speed = speed;
-			this.whenDone = whenDone;
+			if (totalTime < AnimationConfig.BlockTransferMinDuration) totalTime = AnimationConfig.BlockTransferMinDuration;
+			timeLeft = totalTime;
+			this.totalTime = totalTime;
 			factor = 0.0f;
 
-			visual.GetNode<Label3D>("Label3D").Text = ""; // label
+			visual.GetNode<Label3D>("Label3D").Text = CodexUtils.ToShortId(label);
 			var rotates = visual.GetNode<rotates>("MeshInstance3D");
 			rotates.Speed = 5.0f;
 			rotates.TargetSpeed = rotates.Speed;
@@ -56,8 +64,6 @@ namespace OverwatchTranscriptViewer.Codex
 				Origin = source.Transform.Origin,
 				Basis = new Basis(Quaternion.Identity)
 			};
-
-			whenDone();
 		}
 	}
 }

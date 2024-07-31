@@ -11,7 +11,6 @@ namespace OverwatchTranscriptViewer.Common
 		private double delay;
 		private float thickness;
 		private float speed;
-		private Action whenDone;
 		private Node3D from;
 		private Node3D to;
 
@@ -29,7 +28,7 @@ namespace OverwatchTranscriptViewer.Common
 				appearFactorLeft -= Convert.ToSingle(delta) * speed;
 				if (appearFactorLeft <= 0.0f)
 				{
-					whenDone();
+					SceneController.Instance.AnimationFinished();
 					return;
 				}
 
@@ -62,12 +61,13 @@ namespace OverwatchTranscriptViewer.Common
 			visual.Scale = new Vector3(thickness, distance * 0.5f * lengthScale, thickness);
 		}
 
-		public void Initialize(Node3D from, Node3D to, float thickness, float speed, Color color, Action whenDone)
+		public void Initialize(Node3D from, Node3D to, float thickness, float speed, Color color)
 		{
+			SceneController.Instance.AnimationBegin();
+
 			this.from = from;
 			this.to = to;
 			this.speed = speed;
-			this.whenDone = whenDone;
 			this.thickness = thickness;
 
 			appearFactorLeft = 1.0f;

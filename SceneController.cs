@@ -63,11 +63,6 @@ public class SceneController
 		}
 	}
 
-	public void Proceed()
-	{
-		Player.Proceed();
-	}
-
 	public void Step()
 	{
 		Player.StepOne();
@@ -77,6 +72,16 @@ public class SceneController
 	{
 		AssertState(AppState.Empty, AppState.Stopped);
 		Player.SetSpeed(speed);
+	}
+
+	public void AnimationBegin()
+	{
+		Player.AnimationBegin();
+	}
+
+	public void AnimationFinished()
+	{
+		Player.AnimationFinished();
 	}
 
 	public void Quit()

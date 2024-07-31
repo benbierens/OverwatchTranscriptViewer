@@ -38,8 +38,6 @@ public partial class CodexNode : Node3D
 	{
 		targetScale = runningScale;
 		rotate.TargetSpeed = runningSpeed;
-
-		SceneController.Instance.Proceed();
 	}
 
 	public override void _Ready()
@@ -60,10 +58,6 @@ public partial class CodexNode : Node3D
 		if (currentScale < targetScale)
 		{
 			currentScale += scaleSpeed * Convert.ToSingle(delta);
-			if (currentScale >= targetScale)
-			{
-				SceneController.Instance.Proceed();
-			}
 		}
 	}
 }

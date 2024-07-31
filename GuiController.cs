@@ -39,12 +39,12 @@ public partial class GuiController : Node, IScriptEventHandler
 
 	public void Initialize(ITranscriptReader reader, Placer plaer)
 	{
-        earliestUtc = reader.Header.EarliestUtc;
-        totalSpan = reader.Header.LatestUtc - earliestUtc;
-        totalMoments = reader.Header.NumberOfMoments;
+		earliestUtc = reader.Header.EarliestUtc;
+		totalSpan = reader.Header.LatestUtc - earliestUtc;
+		totalMoments = reader.Header.NumberOfMoments;
 
 		reader.AddMomentHandler(HandleMoment);
-    }
+	}
 
 	public void _on_open_button_pressed()
 	{
@@ -70,6 +70,8 @@ public partial class GuiController : Node, IScriptEventHandler
 	{
 		if (!File.Exists(path)) return;
 
+		path = @"d:\Projects\cs-codex-dist-tests\Tests\CodexTests\bin\Debug\net7.0\CodexTestLogs\2024-07\31\11-00-45Z_ExportExample\ThreeUpThreeDown.owts";
+
 		SceneController.Instance.LoadTranscript(path);
 	}
 
@@ -82,30 +84,30 @@ public partial class GuiController : Node, IScriptEventHandler
 		SceneController.Instance.UpdatePlaybackSpeed(speed);
 	}
 
-    private void HandleMoment(ActivateMoment m)
-    {
-        UpdateProgressBars(m.Utc, m.Index);
-    }
+	private void HandleMoment(ActivateMoment m)
+	{
+		UpdateProgressBars(m.Utc, m.Index);
+	}
 
-    private void UpdateProgressBars(DateTime currentTime, long currentMoment)
-    {
-        var process = currentTime - earliestUtc;
-        var factor = process / totalSpan;
-        timeBar.Value = 100.0 * factor;
-        timeLabel.Text = $"Time: ({Short(process.TotalSeconds)} / {Short(totalSpan.TotalSeconds)})";
+	private void UpdateProgressBars(DateTime currentTime, long currentMoment)
+	{
+		var process = currentTime - earliestUtc;
+		var factor = process / totalSpan;
+		timeBar.Value = 100.0 * factor;
+		timeLabel.Text = $"Time: ({Short(process.TotalSeconds)} / {Short(totalSpan.TotalSeconds)})";
 
-        float current = currentMoment;
-        factor = current / totalMoments;
-        eventsBar.Value = 100.0 * factor;
-        eventsLabel.Text = $"Moments: ({Short(current)} / {Short(totalMoments)})";
-    }
+		float current = currentMoment;
+		factor = current / totalMoments;
+		eventsBar.Value = 100.0 * factor;
+		eventsLabel.Text = $"Moments: ({Short(current)} / {Short(totalMoments)})";
+	}
 
-    private string Short(double d)
-    {
-        return d.ToString("F1");
-    }
+	private string Short(double d)
+	{
+		return d.ToString("F1");
+	}
 
-    private void ApplyState(AppState state)
+	private void ApplyState(AppState state)
 	{
 		openButton.Disabled = state != AppState.Empty;
 		speedButton.Disabled = state != AppState.Stopped;

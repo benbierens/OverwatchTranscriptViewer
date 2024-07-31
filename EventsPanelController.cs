@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace OverwatchTranscriptViewer
 {
 	public partial class EventsPanelController : Node, IScriptEventHandler
-    {
+	{
 		public static EventsPanelController Instance;
 
 		private static PackedScene itemTemplate;
@@ -57,12 +57,17 @@ namespace OverwatchTranscriptViewer
 				$"Last event: {Utils.FormateDateTime(reader.Header.LatestUtc)}";
 		}
 
-        private void HandleMoment(ActivateMoment m)
-        {
-            SetCurrentMomentDuration(m.Duration);
-        }
+		public void WaitingForAnim()
+		{
+			eventInfo.Text = "Waiting for animation...";
+		}
 
-        public void Toggle()
+		private void HandleMoment(ActivateMoment m)
+		{
+			SetCurrentMomentDuration(m.Duration);
+		}
+
+		public void Toggle()
 		{
 			visible = !visible;
 			panel.Visible = visible;
@@ -83,13 +88,20 @@ namespace OverwatchTranscriptViewer
 		{
 			if (momentDuration.HasValue)
 			{
-                eventInfo.Text = Utils.FormatDuration(momentDuration.Value);
-            }
+				if (momentDuration.Value.TotalSeconds > AnimationConfig.MaxMomentDuration)
+				{
+					eventInfo.Text = $"{Utils.FormatDuration(momentDuration.Value)} ({AnimationConfig.MaxMomentDuration} secs)";
+				}
+				else
+				{
+					eventInfo.Text = Utils.FormatDuration(momentDuration.Value);
+				}
+			}
 			else
 			{
 				eventInfo.Text = "Playback fininshed";
 			}
-        }
+		}
 
 		public void _on_step_button_pressed()
 		{
