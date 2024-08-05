@@ -4,206 +4,273 @@ using System;
 using System.IO.Compression;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using System.Threading;
+using Godot;
 
 namespace OverwatchTranscript
 {
-	public interface ITranscriptReader
-	{
-		OverwatchCommonHeader Header { get; }
-		T GetHeader<T>(string key);
-		void AddMomentHandler(Action<ActivateMoment> handler);
-		void AddEventHandler<T>(Action<ActivateEvent<T>> handler);
-		void Next();
-		void Close();
-	}
+    public interface ITranscriptReader
+    {
+        OverwatchCommonHeader Header { get; }
+        T GetHeader<T>(string key);
+        void AddMomentHandler(Action<ActivateMoment> handler);
+        void AddEventHandler<T>(Action<ActivateEvent<T>> handler);
+        bool Next();
+        void Close();
+    }
 
-	public class TranscriptReader : ITranscriptReader
-	{
-		private readonly object handlersLock = new object();
-		private readonly string transcriptFile;
-		private readonly string artifactsFolder;
-		private readonly List<Action<ActivateMoment>> momentHandlers = new List<Action<ActivateMoment>>();
-		private readonly Dictionary<string, List<Action<ActivateMoment, string>>> eventHandlers = new Dictionary<string, List<Action<ActivateMoment, string>>>();
-		private readonly string workingDir;
-		private OverwatchTranscript model = null!;
-		private long momentIndex = 0;
-		private bool closed;
+    public class TranscriptReader : ITranscriptReader
+    {
+        private readonly object handlersLock = new object();
+        private readonly string transcriptFile;
+        private readonly string artifactsFolder;
+        private readonly List<Action<ActivateMoment>> momentHandlers = new List<Action<ActivateMoment>>();
+        private readonly Dictionary<string, List<Action<ActivateMoment, string>>> eventHandlers = new Dictionary<string, List<Action<ActivateMoment, string>>>();
+        private readonly string workingDir;
+        private readonly OverwatchTranscript model;
+        private bool closed;
+        private long momentCounter;
+        private readonly ConcurrentQueue<OverwatchMoment> queue = new ConcurrentQueue<OverwatchMoment>();
+        private readonly Task queueFiller;
 
-		public TranscriptReader(string workingDir, string inputFilename)
-		{
-			closed = false;
-			this.workingDir = workingDir;
-			transcriptFile = Path.Combine(workingDir, TranscriptConstants.TranscriptFilename);
-			artifactsFolder = Path.Combine(workingDir, TranscriptConstants.ArtifactFolderName);
+        public TranscriptReader(string workingDir, string inputFilename)
+        {
+            closed = false;
+            this.workingDir = workingDir;
+            transcriptFile = Path.Combine(workingDir, TranscriptConstants.TranscriptFilename);
+            artifactsFolder = Path.Combine(workingDir, TranscriptConstants.ArtifactFolderName);
 
-			if (!Directory.Exists(workingDir)) Directory.CreateDirectory(workingDir);
-			if (File.Exists(transcriptFile) || Directory.Exists(artifactsFolder)) throw new Exception("workingdir not clean");
+            if (!Directory.Exists(workingDir)) Directory.CreateDirectory(workingDir);
+            if (File.Exists(transcriptFile) || Directory.Exists(artifactsFolder)) throw new Exception("workingdir not clean");
 
-			LoadModel(inputFilename);
-		}
+            model = LoadModel(inputFilename);
 
-		public OverwatchCommonHeader Header
-		{
-			get
-			{
-				CheckClosed();
-				return model.Header.Common;
-			}
-		}
+            queueFiller = Task.Run(() => FillQueue(model, workingDir));
+        }
 
-		public T GetHeader<T>(string key)
-		{
-			CheckClosed();
-			var value = model.Header.Entries.First(e => e.Key == key).Value;
-			return JsonConvert.DeserializeObject<T>(value)!;
-		}
+        public OverwatchCommonHeader Header
+        {
+            get
+            {
+                CheckClosed();
+                return model.Header.Common;
+            }
+        }
 
-		public void AddMomentHandler(Action<ActivateMoment> handler)
-		{
-			CheckClosed();
-			lock (handlersLock)
-			{
-				momentHandlers.Add(handler);
-			}
-		}
+        public T GetHeader<T>(string key)
+        {
+            CheckClosed();
+            var value = model.Header.Entries.First(e => e.Key == key).Value;
+            return JsonConvert.DeserializeObject<T>(value)!;
+        }
 
-		public void AddEventHandler<T>(Action<ActivateEvent<T>> handler)
-		{
-			CheckClosed();
+        public void AddMomentHandler(Action<ActivateMoment> handler)
+        {
+            CheckClosed();
+            lock (handlersLock)
+            {
+                momentHandlers.Add(handler);
+            }
+        }
 
-			var typeName = typeof(T).FullName;
-			if (string.IsNullOrEmpty(typeName)) throw new Exception("Empty typename for payload");
+        public void AddEventHandler<T>(Action<ActivateEvent<T>> handler)
+        {
+            CheckClosed();
 
-			lock (handlersLock)
-			{
-				if (eventHandlers.ContainsKey(typeName))
-				{
-					eventHandlers[typeName].Add(CreateEventAction(handler));
-				}
-				else
-				{
-					eventHandlers.Add(typeName, new List<Action<ActivateMoment, string>>
-					{
-						CreateEventAction(handler)
-					});
-				}
-			}
-		}
+            var typeName = typeof(T).FullName;
+            if (string.IsNullOrEmpty(typeName)) throw new Exception("Empty typename for payload");
 
-		public void Next()
-		{
-			CheckClosed();
-			if (momentIndex >= model.Moments.Length) return;
+            lock (handlersLock)
+            {
+                if (eventHandlers.ContainsKey(typeName))
+                {
+                    eventHandlers[typeName].Add(CreateEventAction(handler));
+                }
+                else
+                {
+                    eventHandlers.Add(typeName, new List<Action<ActivateMoment, string>>
+                    {
+                        CreateEventAction(handler)
+                    });
+                }
+            }
+        }
 
-			var moment = model.Moments[momentIndex];
-			var momentDuration = GetMomentDuration();
+        private readonly object nextLock = new object();
+        private OverwatchMoment? moment = null;
+        private OverwatchMoment? next = null;
 
-			ActivateMoment(moment, momentDuration, momentIndex);
+        public bool Next()
+        {
+            CheckClosed();
 
-			momentIndex++;
-		}
+            OverwatchMoment? m = null;
+            TimeSpan? duration = null;
+            lock (nextLock)
+            {
+                if (next == null)
+                {
+                    if (!queue.TryDequeue(out moment))
+                    {
+                        return false;
+                    }
+                    queue.TryDequeue(out next);
+                }
+                else
+                {
+                    moment = next;
+                    next = null;
+                    queue.TryDequeue(out next);
+                }
 
-		public void Close()
-		{
-			CheckClosed();
-			Directory.Delete(workingDir, true);
-			closed = true;
-		}
+                m = moment;
+                duration = GetMomentDuration();
+            }
 
-		private Action<ActivateMoment, string> CreateEventAction<T>(Action<ActivateEvent<T>> handler)
-		{
-			return (m, s) =>
-			{
-				handler(new ActivateEvent<T>(m, JsonConvert.DeserializeObject<T>(s)!));
-			};
-		}
+            ActivateMoment(moment, duration);
 
-		private TimeSpan? GetMomentDuration()
-		{
-			if (momentIndex < 0) throw new Exception("Index < 0");
-			if (momentIndex + 1 >= model.Moments.Length) return null;
+            return true;
+        }
 
-			return
-				model.Moments[momentIndex + 1].Utc -
-				model.Moments[momentIndex].Utc;
-		}
+        public void Close()
+        {
+            CheckClosed();
+            closed = true;
 
-		private void ActivateMoment(OverwatchMoment moment, TimeSpan? duration, long momentIndex)
-		{
-			var m = new ActivateMoment(moment.Utc, duration, momentIndex);
+            queueFiller.Wait();
 
-			lock (handlersLock)
-			{
-				ActivateMomentHandlers(m);
+            Directory.Delete(workingDir, true);
+        }
 
-				foreach (var @event in moment.Events)
-				{
-					ActivateEventHandlers(m, @event);
-				}
-			}
-		}
+        private Action<ActivateMoment, string> CreateEventAction<T>(Action<ActivateEvent<T>> handler)
+        {
+            return (m, s) =>
+            {
+                handler(new ActivateEvent<T>(m, JsonConvert.DeserializeObject<T>(s)!));
+            };
+        }
 
-		private void ActivateMomentHandlers(ActivateMoment m)
-		{
-			foreach (var handler in momentHandlers)
-			{
-				handler(m);
-			}
-		}
+        private void FillQueue(OverwatchTranscript model, string workingDir)
+        {
+            try
+            {
+                var reader = new MomentReader(model, workingDir);
+                GD.Print("starting read task...");
 
-		private void ActivateEventHandlers(ActivateMoment m, OverwatchEvent @event)
-		{
-			if (!eventHandlers.ContainsKey(@event.Type)) return;
-			var handlers = eventHandlers[@event.Type];
+                while (true)
+                {
+                    if (closed)
+                    {
+                        reader.Close();
+                        return;
+                    }
 
-			foreach (var handler in handlers)
-			{
-				handler(m, @event.Payload);
-			}
-		}
+                    while (queue.Count < 10)
+                    {
+                        var moment = reader.Next();
+                        if (moment == null)
+                        {
+                            reader.Close();
+                            return;
+                        }
 
-		private void LoadModel(string inputFilename)
-		{
-			ZipFile.ExtractToDirectory(inputFilename, workingDir);
+                        queue.Enqueue(moment);
+                    }
 
-			if (!File.Exists(transcriptFile))
-			{
-				closed = true;
-				throw new Exception("Is not a transcript file. Unzipped to: " + workingDir);
-			}
+                    Thread.Sleep(1);
+                }
+            }
+            catch   (Exception ex) { GD.Print(ex.ToString()); }
+        }
 
-			model = JsonConvert.DeserializeObject<OverwatchTranscript>(File.ReadAllText(transcriptFile))!;
-		}
+        private TimeSpan? GetMomentDuration()
+        {
+            if (moment == null) return null;
+            if (next == null) return null;
 
-		private void CheckClosed()
-		{
-			if (closed) throw new Exception("Transcript has already been closed.");
-		}
-	}
+            return next.Utc - moment.Utc;
+        }
 
-	public class ActivateMoment
-	{
-		public ActivateMoment(DateTime utc, TimeSpan? duration, long index)
-		{
-			Utc = utc;
-			Duration = duration;
-			Index = index;
-		}
+        private void ActivateMoment(OverwatchMoment moment, TimeSpan? duration)
+        {
+            var m = new ActivateMoment(moment.Utc, duration, momentCounter);
 
-		public DateTime Utc { get; }
-		public TimeSpan? Duration { get; }
-		public long Index { get; }
-	}
+            lock (handlersLock)
+            {
+                ActivateMomentHandlers(m);
 
-	public class ActivateEvent<T>
-	{
-		public ActivateEvent(ActivateMoment moment, T payload)
-		{
-			Moment = moment;
-			Payload = payload;
-		}
+                foreach (var @event in moment.Events)
+                {
+                    ActivateEventHandlers(m, @event);
+                }
+            }
 
-		public ActivateMoment Moment { get; }
-		public T Payload { get; }
-	}
+            momentCounter++;
+        }
+
+        private void ActivateMomentHandlers(ActivateMoment m)
+        {
+            foreach (var handler in momentHandlers)
+            {
+                handler(m);
+            }
+        }
+
+        private void ActivateEventHandlers(ActivateMoment m, OverwatchEvent @event)
+        {
+            if (!eventHandlers.ContainsKey(@event.Type)) return;
+            var handlers = eventHandlers[@event.Type];
+
+            foreach (var handler in handlers)
+            {
+                handler(m, @event.Payload);
+            }
+        }
+
+        private OverwatchTranscript LoadModel(string inputFilename)
+        {
+            ZipFile.ExtractToDirectory(inputFilename, workingDir);
+
+            if (!File.Exists(transcriptFile))
+            {
+                closed = true;
+                throw new Exception("Is not a transcript file. Unzipped to: " + workingDir);
+            }
+
+            return JsonConvert.DeserializeObject<OverwatchTranscript>(File.ReadAllText(transcriptFile))!;
+        }
+
+        private void CheckClosed()
+        {
+            if (closed) throw new Exception("Transcript has already been closed.");
+        }
+    }
+
+    public class ActivateMoment
+    {
+        public ActivateMoment(DateTime utc, TimeSpan? duration, long index)
+        {
+            Utc = utc;
+            Duration = duration;
+            Index = index;
+        }
+
+        public DateTime Utc { get; }
+        public TimeSpan? Duration { get; }
+        public long Index { get; }
+    }
+
+    public class ActivateEvent<T>
+    {
+        public ActivateEvent(ActivateMoment moment, T payload)
+        {
+            Moment = moment;
+            Payload = payload;
+        }
+
+        public ActivateMoment Moment { get; }
+        public T Payload { get; }
+    }
 }
