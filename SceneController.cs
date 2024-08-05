@@ -31,6 +31,7 @@ public class SceneController
 	
 	public void LoadTranscript(string filepath)
 	{
+		GD.Print("Opening: " + filepath);
 		AssertState(AppState.Empty);
 
 		if (!TryLoadFile(filepath)) return;

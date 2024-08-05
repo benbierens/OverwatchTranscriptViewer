@@ -2,7 +2,9 @@ using Godot;
 using OverwatchTranscript;
 using OverwatchTranscriptViewer;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 public partial class GuiController : Node, IScriptEventHandler
 {
@@ -70,12 +72,13 @@ public partial class GuiController : Node, IScriptEventHandler
 	{
 		if (!File.Exists(path)) return;
 
-		path = @"d:\Projects\cs-codex-dist-tests\Tests\CodexTests\bin\Debug\net7.0\CodexTestLogs\2024-07\31\11-00-45Z_ExportExample\ThreeUpThreeDown.owts";
+		path = JustOpenLatest();
+		//@"C:\Projects\cs-codex-dist-tests\Tests\CodexTests\bin\Debug\net7.0\CodexTestLogs\2024-08\05\12-19-29Z_ThreeClientTest\SwarmTest_SwarmTest.owts";
 
 		SceneController.Instance.LoadTranscript(path);
 	}
 
-	public void _on_option_button_item_selected(long index)
+    public void _on_option_button_item_selected(long index)
 	{
 		var speed = 1.0f;
 		if (index == 1) speed = 2.0f;
@@ -113,5 +116,30 @@ public partial class GuiController : Node, IScriptEventHandler
 		speedButton.Disabled = state != AppState.Stopped;
 		playPauseButton.Disabled = state != AppState.Stopped && state != AppState.Playing;
 	}
-}
 
+    private string JustOpenLatest()
+    {
+		var utc = DateTime.MinValue;
+		var latest = "";
+		var toDo = new List<string> { "C:\\Projects\\cs-codex-dist-tests\\Tests" };
+
+		while (toDo.Any())
+		{
+			var path = toDo[0];
+			toDo.RemoveAt(0);
+			toDo.AddRange(Directory.GetDirectories(path));
+
+			var files = Directory.GetFiles(path).Where(f => f.ToLowerInvariant().EndsWith(".owts")).ToArray();
+			foreach (var file in files)
+			{
+				var info = new FileInfo(file);
+				if (info.LastWriteTimeUtc > utc)
+				{
+					utc = info.LastWriteTimeUtc;
+					latest = file;
+				}
+			}
+		}
+		return latest;
+    }
+}
