@@ -78,7 +78,7 @@ public partial class GuiController : Node, IScriptEventHandler
 		SceneController.Instance.LoadTranscript(path);
 	}
 
-    public void _on_option_button_item_selected(long index)
+	public void _on_option_button_item_selected(long index)
 	{
 		var speed = 1.0f;
 		if (index == 1) speed = 2.0f;
@@ -117,29 +117,32 @@ public partial class GuiController : Node, IScriptEventHandler
 		playPauseButton.Disabled = state != AppState.Stopped && state != AppState.Playing;
 	}
 
-    private string JustOpenLatest()
-    {
+	private string JustOpenLatest()
+	{
 		var utc = DateTime.MinValue;
 		var latest = "";
-		var toDo = new List<string> { "C:\\Projects\\cs-codex-dist-tests\\Tests" };
+		var toDo = new List<string> { "C:\\Projects\\cs-codex-dist-tests\\Tests", "D:\\Projects\\cs-codex-dist-tests\\Tests" };
 
 		while (toDo.Any())
 		{
 			var path = toDo[0];
 			toDo.RemoveAt(0);
-			toDo.AddRange(Directory.GetDirectories(path));
-
-			var files = Directory.GetFiles(path).Where(f => f.ToLowerInvariant().EndsWith(".owts")).ToArray();
-			foreach (var file in files)
+			if (Directory.Exists(path))
 			{
-				var info = new FileInfo(file);
-				if (info.LastWriteTimeUtc > utc)
+				toDo.AddRange(Directory.GetDirectories(path));
+
+				var files = Directory.GetFiles(path).Where(f => f.ToLowerInvariant().EndsWith(".owts")).ToArray();
+				foreach (var file in files)
 				{
-					utc = info.LastWriteTimeUtc;
-					latest = file;
+					var info = new FileInfo(file);
+					if (info.LastWriteTimeUtc > utc)
+					{
+						utc = info.LastWriteTimeUtc;
+						latest = file;
+					}
 				}
 			}
 		}
 		return latest;
-    }
+	}
 }
