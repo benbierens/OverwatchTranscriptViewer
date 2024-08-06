@@ -10,6 +10,8 @@ public partial class CodexNode : Node3D
 	private const float startingSpeed = 10.0f;
 	private const float runningScale = 0.3f;
 	private const float runningSpeed = 0.1f;
+	private const float stoppingScale = 0.1f;
+	private const float stoppingSpeed = 0.0f;
 	private float currentScale;
 	private float targetScale;
 	private rotates rotate;
@@ -38,6 +40,12 @@ public partial class CodexNode : Node3D
 	{
 		targetScale = runningScale;
 		rotate.TargetSpeed = runningSpeed;
+	}
+
+	public void Stopping()
+	{
+		targetScale = stoppingScale;
+		rotate.TargetSpeed = stoppingSpeed;
 	}
 
 	public override void _Ready()

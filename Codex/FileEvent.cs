@@ -1,4 +1,5 @@
 using Godot;
+using OverwatchTranscriptViewer.Common;
 using System;
 
 namespace OverwatchTranscriptViewer.Codex
@@ -6,56 +7,70 @@ namespace OverwatchTranscriptViewer.Codex
 	public partial class FileEvent : Node3D
 	{
 		private Vector3 sourcePosition = Vector3.Zero;
+		private Node3D target;
 		private Node3D visual;
-		//private BaseMaterial3D material;
 		private float factor;
-		private bool backwards;
+		private bool isDownload;
+		private bool isFinished;
 		private double timeLeft;
 		private double totalTime;
-		private Node3D target;
+		private ConnectionLine line;
 
 		public override void _Ready()
 		{
 			visual = GetNode<Node3D>("Visual");
-
-			//material = visual.GetSurfaceOverrideMaterial(0) as BaseMaterial3D;
 		}
 
-		public override void _Process(double delta)
+		public void Initialize(Node3D target, string cid, bool isDownload, double duration)
 		{
-			if (timeLeft <= 0.0) return;
-
-			timeLeft -= delta;
-			if (timeLeft <= 0.0)
-			{
-				SceneController.Instance.AnimationFinished();
-				QueueFree();
-				return;
-			}
-
-			float factor = 1.0f - Convert.ToSingle(timeLeft / totalTime);
-			Transform = new Transform3D
-			{
-				Origin = backwards ?
-					target.Transform.Origin.Lerp(sourcePosition, factor) :
-					sourcePosition.Lerp(target.Transform.Origin, factor),
-				Basis = new Basis(Quaternion.Identity)
-			};
-		}
-
-		public void Initialize(Node3D target, string cid, bool backwards, double duration)
-		{
-			SceneController.Instance.AnimationBegin();
-
 			this.target = target;
 			sourcePosition = target.Transform.Origin * 2.0f;
+
+			var template = GD.Load<PackedScene>("res://Common/connection_line.tscn");
+			var instance = template.Instantiate();
+			GetParent().AddChild(instance);
+			line = instance as ConnectionLine;
+			line.Initialize(target, sourcePosition, 0.1f, 3.0f, new Color(1.0f, 1.0f, 1.0f, 1.0f));
+
 			if (duration < 1.0) duration = 1.0;
 			timeLeft = duration;
 			totalTime = duration;
-			this.backwards = backwards;
+			this.isDownload = isDownload;
 			factor = 0.0f;
+			isFinished = false;
+			visual.GetNode<Label3D>("Label3D").Text = CodexUtils.ToShortId(cid);
+		}
 
-			visual.GetNode<Label3D>("Label3D").Text = cid;
+		public void Finish()
+		{
+			SceneController.Instance.AnimationBegin();
+			isFinished = true;
+		}
+		
+		public override void _Process(double delta)
+		{
+			if (isFinished)
+			{
+				timeLeft -= delta;
+				if (timeLeft <= 0.0)
+				{
+					SceneController.Instance.AnimationFinished();
+					line.QueueFree();
+					QueueFree();
+					return;
+				}
+			}
+
+			float factor = 1.0f - Convert.ToSingle(timeLeft / totalTime);
+			var targetPos = target.Transform.Origin.Lerp(sourcePosition, 0.1f);
+
+			Transform = new Transform3D
+			{
+				Origin = isDownload ?
+					targetPos.Lerp(sourcePosition, factor) :
+					sourcePosition.Lerp(targetPos, factor),
+				Basis = new Basis(Quaternion.Identity)
+			};
 		}
 	}
 }

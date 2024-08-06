@@ -5,9 +5,12 @@ using OverwatchTranscriptViewer;
 using OverwatchTranscript;
 using OverwatchTranscriptViewer.Common;
 using OverwatchTranscriptViewer.Codex;
+using Godot.Collections;
 
 public partial class CodexEventHandler : Node, IScriptEventHandler
 {
+	private readonly Dictionary<string, ConnectionLine> dialConnections = new Dictionary<string, ConnectionLine>();
+	private readonly Dictionary<string, FileEvent> fileEvents = new Dictionary<string, FileEvent>();
 	private Placer placer;
 
 	// Called when the node enters the scene tree for the first time.
@@ -39,9 +42,53 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		if (@event.NodeStarting != null) Handle(m, @event, @event.NodeStarting);
 		if (@event.NodeStarted != null) Handle(m, @event, @event.NodeStarted);
 		if (@event.BootstrapConfig != null) Handle(m, @event, @event.BootstrapConfig);
+		if (@event.FileUploading != null) Handle(m, @event, @event.FileUploading);
 		if (@event.FileUploaded != null) Handle(m, @event, @event.FileUploaded);
+		if (@event.FileDownloading != null) Handle(m, @event, @event.FileDownloading);
 		if (@event.FileDownloaded != null) Handle(m, @event, @event.FileDownloaded);
 		if (@event.BlockReceived != null) Handle(m, @event, @event.BlockReceived);
+		if (@event.PeerDropped != null) Handle(m, @event, @event.PeerDropped);
+		if (@event.NodeStopping != null) Handle(m, @event, @event.NodeStopping);
+		if (@event.DialSuccessful != null) Handle(m, @event, @event.DialSuccessful);
+	}
+
+	private void Handle(ActivateMoment m, OverwatchCodexEvent @event, PeerDroppedEvent peerDropped)
+	{
+		var lineid = GetLineId(@event.PeerId, peerDropped.DroppedPeerId);
+		var line = dialConnections[lineid];
+		dialConnections.Remove(lineid);
+		line.Disappear();
+
+		AddToPanel(m, $"{@event.Name} is dropping a peer.", "peer: " + peerDropped.DroppedPeerId);
+	}
+
+	private void Handle(ActivateMoment m, OverwatchCodexEvent @event, NodeStoppingEvent nodeStopping)
+	{
+		var node = GetCodex(@event.PeerId);
+		node.Stopping();
+
+		AddToPanel(m, $"{@event.Name} is stopping.");
+	}
+
+	private void Handle(ActivateMoment m, OverwatchCodexEvent @event, PeerDialSuccessfulEvent dialSuccessful)
+	{
+		var from = GetCodex(@event.PeerId);
+		var to = GetCodex(dialSuccessful.TargetPeerId);
+
+		var lineId = GetLineId(from.PeerId, to.PeerId);
+		if (dialConnections.ContainsKey(lineId))
+		{
+			dialConnections[lineId].Highlight();
+			AddToPanel(m, $"{@event.Name} dialed peer again!", "peer: " + dialSuccessful.TargetPeerId);
+			return;
+		}
+
+		var line = SpawnConnectionLine();
+		line.Initialize(from, to, thickness: 0.12f, speed: 3.5f, new Color(0.5f, 0.5f, 0.8f, 0.6f));
+
+		dialConnections.Add(lineId, line);
+
+		AddToPanel(m, $"{@event.Name} successfull dialed.", "peer: " + dialSuccessful.TargetPeerId);
 	}
 
 	private void Handle(ActivateMoment moment, OverwatchCodexEvent @event, BlockReceivedEvent blockReceived)
@@ -58,26 +105,44 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 			"Sender: " + blockReceived.SenderPeerId);
 	}
 
-	private void Handle(ActivateMoment moment, OverwatchCodexEvent @event, FileDownloadedEvent fileDownloaded)
+	private void Handle(ActivateMoment m, OverwatchCodexEvent @event, FileDownloadingEvent fileDownloading)
 	{
 		SpawnFileEvent(
+			id: GetFileId(@event),
 			target: GetCodex(@event.PeerId),
-			cid: fileDownloaded.Cid,
-			backwards: true,
-			totalTime: SceneController.Instance.Player.ApplySpeedToDuration(moment.Duration)
+			cid: fileDownloading.Cid,
+			isDownload: true,
+			totalTime: SceneController.Instance.Player.ApplySpeedToDuration(m.Duration)
 		);
 
-		AddToPanel(moment, $"{@event.Name} downloaded file.", "Cid: " + fileDownloaded.Cid);
+		AddToPanel(m, $"{@event.Name} starts downloading file.", "Cid: " + fileDownloading.Cid);
+	}
+
+	private void Handle(ActivateMoment moment, OverwatchCodexEvent @event, FileDownloadedEvent fileDownloaded)
+	{
+		var fileEvent = fileEvents[GetFileId(@event)];
+		fileEvent.Finish();
+
+		AddToPanel(moment, $"{@event.Name} finished downloading file.", "Cid: " + fileDownloaded.Cid);
+	}
+
+	private void Handle(ActivateMoment m, OverwatchCodexEvent @event, FileUploadingEvent fileUploading)
+	{
+		SpawnFileEvent(
+			id: GetFileId(@event),
+			target: GetCodex(@event.PeerId),
+			cid: "",
+			isDownload: false,
+			totalTime: SceneController.Instance.Player.ApplySpeedToDuration(m.Duration)
+		);
+
+		AddToPanel(m, $"{@event.Name} starts uploading file.");
 	}
 
 	private void Handle(ActivateMoment moment, OverwatchCodexEvent @event, FileUploadedEvent fileUploaded)
 	{
-		SpawnFileEvent(
-			target: GetCodex(@event.PeerId),
-			cid: fileUploaded.Cid,
-			backwards: false,
-			totalTime: SceneController.Instance.Player.ApplySpeedToDuration(moment.Duration)
-		);
+		var fileEvent = fileEvents[GetFileId(@event)];
+		fileEvent.Finish();
 
 		AddToPanel(moment, $"{@event.Name} uploaded file.", "Cid: " + fileUploaded.Cid);
 	}
@@ -135,18 +200,20 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		return instance as ConnectionLine;
 	}
 
-	private void SpawnFileEvent(CodexNode target, string cid, bool backwards, TimeSpan? totalTime)
+	private void SpawnFileEvent(string id, CodexNode target, string cid, bool isDownload, TimeSpan? totalTime)
 	{
 		var duration = totalTime.HasValue ? totalTime.Value.TotalSeconds : 3.0;
 		var template = GD.Load<PackedScene>("res://Codex/file_event.tscn");
 		var instance = template.Instantiate();
 		AddChild(instance);
-		(instance as FileEvent).Initialize(target, cid, backwards, duration);
+		(instance as FileEvent).Initialize(target, cid, isDownload, duration);
 		(instance as Node3D).Transform = new Transform3D
 		{
 			Origin = new Vector3(10.0f, 10.0f, 10.0f),
 			Basis = new Basis(Quaternion.Identity)
 		};
+
+		fileEvents.Add(id, (FileEvent)instance);
 	}
 
 	private void SpawnTransferEvent(CodexNode source, CodexNode target, string label, TimeSpan? totalTime)
@@ -157,5 +224,23 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		AddChild(instance);
 
 		(instance as TransferEvent).Initialize(source, target, label, totalTime: duration);
+	}
+
+	private string GetLineId(string a, string b)
+	{
+		if (string.Compare(a, b) > 0)
+		{
+			return a + b;
+		}
+		return b + a;
+	}
+
+	private string GetFileId(OverwatchCodexEvent @event)
+	{
+		if (@event.FileUploading != null) return @event.PeerId + @event.FileUploading.UniqueId;
+		if (@event.FileUploaded != null) return @event.PeerId + @event.FileUploaded.UniqueId;
+		if (@event.FileDownloading != null) return @event.PeerId + @event.FileDownloading.Cid;
+		if (@event.FileDownloaded != null) return @event.PeerId + @event.FileDownloaded.Cid;
+		throw new Exception("No file event in CodexEvent");
 	}
 }
