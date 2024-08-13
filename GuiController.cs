@@ -21,6 +21,24 @@ public partial class GuiController : Node, IScriptEventHandler
 	private Label timeLabel;
 	private Label eventsLabel;
 
+	[Export]
+	public CheckBox LineViewOptionsToggle;
+
+	[Export]
+	public Panel LineViewOptionsPanel;
+
+	[Export]
+	public CheckButton BootLinesCb;
+
+	[Export]
+	public CheckButton UpDownLinesCb;
+
+	[Export]
+	public CheckButton DialLinesCb;
+
+	[Export]
+	public CheckButton DHTLinesCb;
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -87,6 +105,23 @@ public partial class GuiController : Node, IScriptEventHandler
 		SceneController.Instance.UpdatePlaybackSpeed(speed);
 	}
 
+	public void _on_check_box_pressed()
+	{
+		LineViewOptionsPanel.Visible = LineViewOptionsToggle.ButtonPressed;
+	}
+
+	public void _on_lines_checkbox_pressed()
+	{
+		SceneController.Instance.RaiseLineOptions(
+			new LineOptionsEvent(
+				BootLinesCb.ButtonPressed,
+				UpDownLinesCb.ButtonPressed,
+				DialLinesCb.ButtonPressed,
+				DHTLinesCb.ButtonPressed
+			)
+		);
+	}
+
 	private void HandleMoment(ActivateMoment m)
 	{
 		UpdateProgressBars(m.Utc, m.Index);
@@ -145,4 +180,24 @@ public partial class GuiController : Node, IScriptEventHandler
 		}
 		return latest;
 	}
+}
+
+public class LineOptionsEvent
+{
+	public LineOptionsEvent(
+		bool showBootLines,
+		bool showUpDownLines,
+		bool showDialLines,
+		bool showDHTLines)
+	{
+		ShowBootLines = showBootLines;
+		ShowUpDownLines = showUpDownLines;
+		ShowDialLines = showDialLines;
+		ShowDHTLines = showDHTLines;
+	}
+
+	public bool ShowBootLines { get; }
+	public bool ShowUpDownLines { get; }
+	public bool ShowDialLines { get; }
+	public bool ShowDHTLines { get; }
 }

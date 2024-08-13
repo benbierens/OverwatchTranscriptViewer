@@ -16,8 +16,20 @@ transform = Transform3D(0.895121, -0.290537, 0.338151, 0, 0.758487, 0.651688, -0
 
 [node name="Control" parent="." instance=ExtResource("2_id74j")]
 
-[node name="CodexEventHandler" type="Node" parent="."]
+[node name="CodexEventHandler" type="Node" parent="." node_paths=PackedStringArray("BootLines", "UpDownLines", "DialLines", "DHTLines")]
 script = ExtResource("4_1ylr8")
+BootLines = NodePath("BootLines")
+UpDownLines = NodePath("UpdownLines")
+DialLines = NodePath("DialLines")
+DHTLines = NodePath("DHTLines")
+
+[node name="BootLines" type="Node3D" parent="CodexEventHandler"]
+
+[node name="UpdownLines" type="Node3D" parent="CodexEventHandler"]
+
+[node name="DialLines" type="Node3D" parent="CodexEventHandler"]
+
+[node name="DHTLines" type="Node3D" parent="CodexEventHandler"]
 
 [node name="Player" type="Node" parent="."]
 script = ExtResource("4_e5pic")

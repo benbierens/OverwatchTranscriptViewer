@@ -21,14 +21,14 @@ namespace OverwatchTranscriptViewer.Codex
 			visual = GetNode<Node3D>("Visual");
 		}
 
-		public void Initialize(Node3D target, string cid, bool isDownload, double duration)
+		public void Initialize(Node3D target, Node3D lineParent, string cid, bool isDownload, double duration)
 		{
 			this.target = target;
 			sourcePosition = target.Transform.Origin * 2.0f;
 
 			var template = GD.Load<PackedScene>("res://Common/connection_line.tscn");
 			var instance = template.Instantiate();
-			GetParent().AddChild(instance);
+			lineParent.AddChild(instance);
 			line = instance as ConnectionLine;
 			line.Initialize(target, sourcePosition, 0.1f, 3.0f, new Color(1.0f, 1.0f, 1.0f, 1.0f));
 

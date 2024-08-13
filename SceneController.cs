@@ -23,6 +23,7 @@ public class SceneController
 
 	public Player Player;
 	public event Action<AppState> AppStateChanged;
+	public event Action<LineOptionsEvent> LineOptionsChanged;
 
 	public void RegisterScriptEventHandler(IScriptEventHandler handler)
 	{
@@ -83,6 +84,15 @@ public class SceneController
 	public void AnimationFinished()
 	{
 		Player.AnimationFinished();
+	}
+
+	public void RaiseLineOptions(LineOptionsEvent @event)
+	{
+		var handlers = LineOptionsChanged;
+		if (handlers != null)
+		{
+			handlers(@event);
+		}
 	}
 
 	public void Quit()

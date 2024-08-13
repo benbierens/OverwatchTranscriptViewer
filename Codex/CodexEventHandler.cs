@@ -13,10 +13,23 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 	private readonly Dictionary<string, FileEvent> fileEvents = new Dictionary<string, FileEvent>();
 	private Placer placer;
 
+	[Export]
+	public Node3D BootLines;
+	
+	[Export]
+	public Node3D UpDownLines;
+	
+	[Export]
+	public Node3D DialLines;
+	
+	[Export]
+	public Node3D DHTLines;
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		SceneController.Instance.RegisterScriptEventHandler(this);
+		SceneController.Instance.LineOptionsChanged += UpdateLineVisibility;
 	}
 
 	public void Initialize(ITranscriptReader reader, Placer placer)
@@ -83,7 +96,7 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 			return;
 		}
 
-		var line = SpawnConnectionLine();
+		var line = SpawnConnectionLine(DialLines);
 		line.Initialize(from, to, thickness: 0.12f, speed: 3.5f, new Color(0.5f, 0.5f, 0.8f, 0.6f));
 
 		dialConnections.Add(lineId, line);
@@ -152,7 +165,7 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		var from = GetCodex(@event.PeerId);
 		var to = GetCodex(bootstrapConfig.BootstrapPeerId);
 
-		var line = SpawnConnectionLine();
+		var line = SpawnConnectionLine(BootLines);
 		line.Initialize(from, to, thickness: 0.08f, speed: 2.5f, new Color(0.2f, 0.2f, 0.2f, 0.4f));
 
 		AddToPanel(moment, $"{@event.Name} bootstrapped.", "bootnode: " + bootstrapConfig.BootstrapPeerId);
@@ -192,11 +205,11 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		return instance as CodexNode;
 	}
 
-	private ConnectionLine SpawnConnectionLine()
+	private ConnectionLine SpawnConnectionLine(Node3D parent)
 	{
 		var template = GD.Load<PackedScene>("res://Common/connection_line.tscn");
 		var instance = template.Instantiate();
-		AddChild(instance);
+		parent.AddChild(instance);
 		return instance as ConnectionLine;
 	}
 
@@ -206,7 +219,7 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		var template = GD.Load<PackedScene>("res://Codex/file_event.tscn");
 		var instance = template.Instantiate();
 		AddChild(instance);
-		(instance as FileEvent).Initialize(target, cid, isDownload, duration);
+		(instance as FileEvent).Initialize(target, UpDownLines, cid, isDownload, duration);
 		(instance as Node3D).Transform = new Transform3D
 		{
 			Origin = new Vector3(10.0f, 10.0f, 10.0f),
@@ -242,5 +255,13 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 		if (@event.FileDownloading != null) return @event.PeerId + @event.FileDownloading.Cid;
 		if (@event.FileDownloaded != null) return @event.PeerId + @event.FileDownloaded.Cid;
 		throw new Exception("No file event in CodexEvent");
+	}
+
+	private void UpdateLineVisibility(LineOptionsEvent e)
+	{
+		BootLines.Visible = e.ShowBootLines;
+		UpDownLines.Visible = e.ShowUpDownLines;
+		DialLines.Visible = e.ShowDialLines;
+		DHTLines.Visible = e.ShowDHTLines;
 	}
 }
