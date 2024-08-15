@@ -20,10 +20,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GuiController" type="Node" parent="." node_paths=PackedStringArray("LineViewOptionsToggle", "LineViewOptionsPanel", "BootLinesCb", "UpDownLinesCb", "DialLinesCb", "DHTLinesCb")]
+[node name="GuiController" type="Node" parent="." node_paths=PackedStringArray("LineViewOptionsToggle", "LineViewOptionsPanel", "KademliaPositionsCb", "BootLinesCb", "UpDownLinesCb", "DialLinesCb", "DHTLinesCb")]
 script = ExtResource("1_rdumm")
 LineViewOptionsToggle = NodePath("Panel/CheckBox")
 LineViewOptionsPanel = NodePath("LineViewOptions")
+KademliaPositionsCb = NodePath("LineViewOptions/VBoxContainer/NodePositions")
 BootLinesCb = NodePath("LineViewOptions/VBoxContainer/BootLinesCheckbox")
 UpDownLinesCb = NodePath("LineViewOptions/VBoxContainer/UpDownLinesCheckbox")
 DialLinesCb = NodePath("LineViewOptions/VBoxContainer/DialLinesCheckbox")
@@ -261,7 +262,8 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LineViewOptions" type="Panel" parent="GuiController"]
-anchors_preset = -1
+visible = false
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -281,6 +283,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="NodePositions" type="CheckButton" parent="GuiController/LineViewOptions/VBoxContainer"]
+layout_mode = 2
+text = "Kademlia Positions"
 
 [node name="BootLinesCheckbox" type="CheckButton" parent="GuiController/LineViewOptions/VBoxContainer"]
 layout_mode = 2
@@ -313,6 +319,7 @@ text = "DHT Routing Lines"
 [connection signal="pressed" from="GuiController/Panel/Button4" to="GuiController" method="_on_reset_camera_pressed"]
 [connection signal="pressed" from="GuiController/Panel/CheckBox" to="GuiController" method="_on_check_box_pressed"]
 [connection signal="pressed" from="GuiController/EventsPanelController/EventsPanel/Button" to="GuiController/EventsPanelController" method="_on_step_button_pressed"]
+[connection signal="pressed" from="GuiController/LineViewOptions/VBoxContainer/NodePositions" to="GuiController" method="_on_lines_checkbox_pressed"]
 [connection signal="pressed" from="GuiController/LineViewOptions/VBoxContainer/BootLinesCheckbox" to="GuiController" method="_on_lines_checkbox_pressed"]
 [connection signal="pressed" from="GuiController/LineViewOptions/VBoxContainer/UpDownLinesCheckbox" to="GuiController" method="_on_lines_checkbox_pressed"]
 [connection signal="pressed" from="GuiController/LineViewOptions/VBoxContainer/DialLinesCheckbox" to="GuiController" method="_on_lines_checkbox_pressed"]

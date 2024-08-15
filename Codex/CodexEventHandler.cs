@@ -174,7 +174,8 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
 
     private void Handle(ActivateMoment moment, OverwatchCodexEvent @event, NodeStartingEvent nodeStarting)
     {
-        var node = SpawnCodexNode();
+        var kPos = GetKademliaPosition(@event);
+        var node = SpawnCodexNode(kPos);
         node.Starting(GetName(@event), GetPeerId(@event));
 
         AddToPanel(moment, $"{GetName(@event)} is starting...");
@@ -197,12 +198,12 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
         return Lookup.Get<CodexNode>(name);
     }
 
-    private CodexNode SpawnCodexNode()
+    private CodexNode SpawnCodexNode(float kPos)
     {
         var template = GD.Load<PackedScene>("res://Codex/codex_node.tscn");
         var instance = template.Instantiate();
         AddChild(instance);
-        (instance as Node3D).Translate(placer.GetPlace());
+        SceneController.Instance.Placer.Control(instance as Node3D, kPos);
         return instance as CodexNode;
     }
 
@@ -274,5 +275,10 @@ public partial class CodexEventHandler : Node, IScriptEventHandler
     private string GetName(OverwatchCodexEvent e)
     {
         return header.Nodes[e.NodeIdentity].Name;
+    }
+
+    private float GetKademliaPosition(OverwatchCodexEvent e)
+    {
+        return header.Nodes[e.NodeIdentity].KademliaNormalizedPosition;
     }
 }

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://djdpvuc0gcka8"]
+[gd_scene load_steps=6 format=3 uid="uid://djdpvuc0gcka8"]
 
 [ext_resource type="PackedScene" uid="uid://d274hcvhaome0" path="res://gui.tscn" id="2_id74j"]
 [ext_resource type="Script" path="res://CameraController.cs" id="2_mkvwe"]
 [ext_resource type="Script" path="res://Codex/CodexEventHandler.cs" id="4_1ylr8"]
 [ext_resource type="Script" path="res://Player.cs" id="4_e5pic"]
+[ext_resource type="Script" path="res://Placer.cs" id="5_ntpel"]
 
 [node name="MainScene" type="Node3D"]
 
@@ -33,3 +34,6 @@ DHTLines = NodePath("DHTLines")
 
 [node name="Player" type="Node" parent="."]
 script = ExtResource("4_e5pic")
+
+[node name="Placer" type="Node" parent="."]
+script = ExtResource("5_ntpel")

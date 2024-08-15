@@ -8,7 +8,6 @@ namespace OverwatchTranscriptViewer.Common
 		private MeshInstance3D visual;
 		private BaseMaterial3D material;
 		private float appearFactorLeft;
-		private double delay;
 		private float thickness;
 		private float speed;
 		private Node3D from;
@@ -84,11 +83,11 @@ namespace OverwatchTranscriptViewer.Common
 				return;
 			}
 
-			if (delay > 0.0) { delay -= delta; return; }
-			delay = 2.0;
-
-			UpdatePositionRotation(1.0f);
-		}
+			if (SceneController.Instance.Placer.PlacesUpdating)
+			{
+                UpdatePositionRotation(1.0f);
+            }
+        }
 
 		public void Disappear()
 		{

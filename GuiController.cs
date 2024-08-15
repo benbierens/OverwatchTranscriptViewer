@@ -28,6 +28,9 @@ public partial class GuiController : Node, IScriptEventHandler
 	public Panel LineViewOptionsPanel;
 
 	[Export]
+	public CheckButton KademliaPositionsCb;
+
+	[Export]
 	public CheckButton BootLinesCb;
 
 	[Export]
@@ -114,6 +117,7 @@ public partial class GuiController : Node, IScriptEventHandler
 	{
 		SceneController.Instance.RaiseLineOptions(
 			new LineOptionsEvent(
+				KademliaPositionsCb.ButtonPressed,
 				BootLinesCb.ButtonPressed,
 				UpDownLinesCb.ButtonPressed,
 				DialLinesCb.ButtonPressed,
@@ -185,17 +189,20 @@ public partial class GuiController : Node, IScriptEventHandler
 public class LineOptionsEvent
 {
 	public LineOptionsEvent(
+		bool kademliaPositions,
 		bool showBootLines,
 		bool showUpDownLines,
 		bool showDialLines,
 		bool showDHTLines)
 	{
+		KademliaPositions = kademliaPositions;
 		ShowBootLines = showBootLines;
 		ShowUpDownLines = showUpDownLines;
 		ShowDialLines = showDialLines;
 		ShowDHTLines = showDHTLines;
 	}
 
+	public bool KademliaPositions { get; }
 	public bool ShowBootLines { get; }
 	public bool ShowUpDownLines { get; }
 	public bool ShowDialLines { get; }

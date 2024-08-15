@@ -9,7 +9,6 @@ public class SceneController
 {
 	private static SceneController instance;
 	private ITranscriptReader reader;
-	private readonly Placer placer = new Placer();
 	private readonly List<IScriptEventHandler> handlerRegistrations = new List<IScriptEventHandler>();
 	
 	public static SceneController Instance
@@ -22,7 +21,8 @@ public class SceneController
 	}
 
 	public Player Player;
-	public event Action<AppState> AppStateChanged;
+    public Placer Placer;
+    public event Action<AppState> AppStateChanged;
 	public event Action<LineOptionsEvent> LineOptionsChanged;
 
 	public void RegisterScriptEventHandler(IScriptEventHandler handler)
@@ -39,7 +39,7 @@ public class SceneController
 
 		foreach (var handler in handlerRegistrations)
 		{
-			handler.Initialize(reader, placer);
+			handler.Initialize(reader, Placer);
 		}
 
 		Player.Initialize(reader);
