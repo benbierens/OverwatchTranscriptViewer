@@ -99,14 +99,14 @@ namespace OverwatchTranscript
 		}
 
 		private readonly object nextLock = new object();
-		private OverwatchMoment? moment = null;
-		private OverwatchMoment? next = null;
+		private OverwatchMoment moment = null;
+		private OverwatchMoment next = null;
 
 		public bool Next()
 		{
 			CheckClosed();
 
-			OverwatchMoment? m = null;
+			OverwatchMoment m = null;
 			TimeSpan? duration = null;
 			lock (nextLock)
 			{

@@ -20,7 +20,7 @@ namespace OverwatchTranscript
             currentRef = CreateOpenReference();
         }
 
-        public OverwatchMoment? Next()
+        public OverwatchMoment Next()
         {
             if (referenceIndex >= model.MomentReferences.Length) return null;
 
@@ -86,7 +86,7 @@ namespace OverwatchTranscript
                 reader = new StreamReader(file);
             }
 
-            public OverwatchMoment? ReadNext()
+            public OverwatchMoment ReadNext()
             {
                 var line = reader.ReadLine();
                 if (string.IsNullOrEmpty(line)) return null;
